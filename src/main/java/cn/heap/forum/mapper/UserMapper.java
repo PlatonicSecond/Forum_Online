@@ -1,4 +1,7 @@
 package cn.heap.forum.mapper;
 
-public interface UserMapper {
+import cn.heap.forum.pojo.User;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+
+public interface UserMapper extends BaseMapper<User> {
 }

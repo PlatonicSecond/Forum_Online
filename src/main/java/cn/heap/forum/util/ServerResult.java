@@ -1,4 +1,30 @@
 package cn.heap.forum.util;
 
-public class ServerResult {
+import lombok.Data;
+
+@Data
+public class ServerResult<T> {
+    private Integer code;
+    private String message;
+    private T date;
+
+    public static <T> ServerResult<T> success(T data){
+        ServerResult<T> result = new ServerResult<>();
+        result.setCode(200);
+        result.setMessage("OK");
+        result.setDate(data);
+        return result;
+    }
+
+    public static <T> ServerResult<T> success(){
+        return success(null);
+    }
+
+    public static <T> ServerResult<T> error(Integer code, String message){
+        ServerResult<T> result = new ServerResult<>();
+        result.setCode(code);
+        result.setMessage(message);
+        return result;
+    }
 }
+
