@@ -8,12 +8,13 @@ import java.time.LocalDateTime;
 @Data
 @TableName("user")
 public class User {
-    private Integer id;
+    @TableId(value = "userId", type = IdType.AUTO)
+    private Integer userId;
     private String username;
     private String password;
     private String avatarPath;
     @TableField("roleId")
     private Integer roleId;
     private LocalDateTime registerTime;
-
 }
+
