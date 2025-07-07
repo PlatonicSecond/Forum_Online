@@ -15,13 +15,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/plate")
-@Api("plate管理类测试文档")
+@Api(tags = "plate管理类测试文档")
 public class PlateController {
     @Autowired
     private PlateService plateService;
 
     @GetMapping("/select")
-    @ApiParam("获取所有plate")
+    @ApiParam(value = "获取所有plate")
     public ServerResult<List<Plate>> selectAll() {
         return ServerResult.success(plateService.selectAll());
     }
