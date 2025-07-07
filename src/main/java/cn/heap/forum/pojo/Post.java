@@ -1,29 +1,21 @@
 package cn.heap.forum.pojo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @TableName("Post")
 public class Post {
+    @TableId("postId")
     private Integer postId;
     private String content;
     private Integer authorId;
-    private Date createTime;
+    @TableField("createTime") // 映射数据库字段名
+    private LocalDateTime createTime;
     private String postImgpath;
     private Integer plateId;
-
-    @Override
-    public String toString() {
-        return "Post{" +
-                "postId=" + postId +
-                ", content='" + content + '\'' +
-                ", authorId=" + authorId +
-                ", createTime=" + createTime +
-                ", postImgpath='" + postImgpath + '\'' +
-                ", plateId=" + plateId +
-                '}';
-    }
 }
