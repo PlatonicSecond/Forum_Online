@@ -4,6 +4,7 @@ import cn.heap.forum.pojo.User;
 import cn.heap.forum.service.UserService;
 import cn.heap.forum.util.ServerResult;
 import com.baomidou.mybatisplus.extension.api.R;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@Tag(name = "用户接口")
+@Api(value = "用户接口")
 public class UserController {
     @Autowired
     private UserService userService;
