@@ -6,13 +6,13 @@ import lombok.Data;
 public class ServerResult<T> {
     private Integer code;
     private String message;
-    private T date;
+    private T data;  // 修正字段名
 
     public static <T> ServerResult<T> success(T data){
         ServerResult<T> result = new ServerResult<>();
         result.setCode(200);
         result.setMessage("OK");
-        result.setDate(data);
+        result.setData(data);  // 修正方法名
         return result;
     }
 

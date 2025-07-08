@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT登录测试 - Forum Online</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        .section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .error-box {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .token-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 JWT登录系统测试</h1>
+            <p>测试JWT令牌生成、拦截器验证和ThreadLocal用户上下文</p>
+        </div>
+
+        <div class="content">
+            <!-- 登录区域 -->
+            <div class="section">
+                <h3>🚀 用户登录</h3>
+                <div class="info-box">
+                    <strong>功能说明：</strong><br>
+                    • 用户名密码验证<br>
+                    • JWT令牌生成<br>
+                    • 登录状态保持
+                </div>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input type="text" id="username" placeholder="请输入用户名" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <input type="password" id="password" placeholder="请输入密码" required>
+                    </div>
+                    <button type="submit" class="btn">登录</button>
+                    <button type="button" class="btn btn-danger" onclick="logout()">退出登录</button>
+                </form>
+
+                <div id="loginResult"></div>
+                
+                <div id="tokenDisplay" style="display: none;">
+                    <h4>JWT令牌:</h4>
+                    <div class="token-display" id="tokenContent"></div>
+                </div>
+            </div>
+
+            <!-- API测试区域 -->
+            <div class="section">
+                <h3>🔧 API功能测试</h3>
+                <div class="info-box">
+                    <strong>功能说明：</strong><br>
+                    • 测试JWT拦截器<br>
+                    • 验证ThreadLocal用户上下文<br>
+                    • 模拟帖子创建功能
+                </div>
+
+                <button class="btn btn-success" onclick="testJwtAndThreadLocal()">验证JWT和ThreadLocal</button>
+                <button class="btn btn-success" onclick="testCreatePost()">测试创建帖子</button>
+                <button class="btn btn-success" onclick="testGetPosts()">测试获取帖子</button>
+                <button class="btn btn-success" onclick="testWithoutToken()">测试无令牌请求</button>
+
+                <div id="apiResult"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/axios.min.js"></script>
+    <script>
+        // 设置axios基础URL
+        axios.defaults.baseURL = 'http://localhost:8091';
+        
+        // 当前用户token
+        let currentToken = localStorage.getItem('token');
+        
+        // 如果有token，设置到axios header
+        if (currentToken) {
+            axios.defaults.headers.common['Authorization'] = `Bearer ${currentToken}`;
+            document.getElementById('tokenDisplay').style.display = 'block';
+            document.getElementById('tokenContent').textContent = currentToken;
+        }
+
+        // 登录表单处理
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await axios.post('/user/login', {
+                    username: username,
+                    password: password
+                });
+                
+                console.log('服务器响应:', response);
+                console.log('响应数据:', response.data);
+                
+                if (response.data && response.data.code === 200) {
+                    const loginData = response.data.data;
+                    console.log('登录数据:', loginData);
+                    
+                    if (loginData && loginData.token) {
+                        currentToken = loginData.token;
+                        
+                        // 保存token到localStorage
+                        localStorage.setItem('token', currentToken);
+                        
+                        // 设置axios默认header
+                        axios.defaults.headers.common['Authorization'] = `Bearer ${currentToken}`;
+                        
+                        // 显示成功信息
+                        document.getElementById('loginResult').innerHTML = `
+                            <div class="success-box">
+                                <strong>🎉 登录成功！</strong><br>
+                                用户名: ${loginData.username || '未知'}<br>
+                                角色: ${loginData.roleName || '未知'}<br>
+                                角色ID: ${loginData.roleId || '未知'}
+                            </div>
+                        `;
+                        
+                        // 显示token
+                        document.getElementById('tokenDisplay').style.display = 'block';
+                        document.getElementById('tokenContent').textContent = currentToken;
+                    } else {
+                        document.getElementById('loginResult').innerHTML = `
+                            <div class="error-box">
+                                <strong>❌ 登录数据错误</strong><br>
+                                服务器返回的数据格式不正确<br>
+                                返回数据: ${JSON.stringify(response.data)}
+                            </div>
+                        `;
+                    }
+                    
+                } else {
+                    document.getElementById('loginResult').innerHTML = `
+                        <div class="error-box">
+                            <strong>❌ 登录失败</strong><br>
+                            ${response.data?.message || '未知错误'}<br>
+                            完整响应: ${JSON.stringify(response.data)}
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('登录错误详情:', error);
+                
+                let errorMessage = '未知错误';
+                if (error.response) {
+                    // 服务器返回了错误响应
+                    errorMessage = `状态码: ${error.response.status}<br>`;
+                    errorMessage += `错误信息: ${error.response.data?.message || error.response.statusText}<br>`;
+                    errorMessage += `完整响应: ${JSON.stringify(error.response.data)}`;
+                } else if (error.request) {
+                    // 请求已发出，但没有收到响应
+                    errorMessage = '网络错误: 无法连接到服务器<br>';
+                    errorMessage += `请求详情: ${error.request}`;
+                } else {
+                    // 其他错误
+                    errorMessage = `请求设置错误: ${error.message}`;
+                }
+                
+                document.getElementById('loginResult').innerHTML = `
+                    <div class="error-box">
+                        <strong>❌ 登录错误</strong><br>
+                        ${errorMessage}
+                    </div>
+                `;
+            }
+        });
+
+        // 退出登录
+        function logout() {
+            currentToken = null;
+            localStorage.removeItem('token');
+            delete axios.defaults.headers.common['Authorization'];
+            
+            document.getElementById('loginResult').innerHTML = `
+                <div class="info-box">
+                    <strong>👋 已退出登录</strong>
+                </div>
+            `;
+            
+            document.getElementById('tokenDisplay').style.display = 'none';
+            document.getElementById('apiResult').innerHTML = '';
+        }
+
+        // 验证JWT和ThreadLocal
+        async function testJwtAndThreadLocal() {
+            if (!currentToken) {
+                document.getElementById('apiResult').innerHTML = `
+                    <div class="error-box">
+                        <strong>❌ 请先登录</strong>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const response = await axios.get('/user/verify');
+                
+                document.getElementById('apiResult').innerHTML = `
+                    <div class="success-box">
+                        <strong>✅ JWT和ThreadLocal验证成功</strong><br>
+                        <pre style="white-space: pre-wrap; margin-top: 10px;">${response.data.data}</pre>
+                    </div>
+                `;
+                
+            } catch (error) {
+                document.getElementById('apiResult').innerHTML = `
+                    <div class="error-box">
+                        <strong>❌ 验证失败</strong><br>
+                        ${error.response?.data?.message || error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // 测试创建帖子（需要登录）
+        async function testCreatePost() {
+            if (!currentToken) {
+                document.getElementById('apiResult').innerHTML = `
+                    <div class="error-box">
+                        <strong>❌ 请先登录</strong>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const response = await axios.post('/post/create', {
+                    content: '这是一个测试帖子内容',
+                    plateId: 1
+                });
+                
+                document.getElementById('apiResult').innerHTML = `
+                    <div class="success-box">
+                        <strong>✅ 创建帖子测试成功</strong><br>
+                        ${response.data.message}<br>
+                        <small>这证明JWT拦截器和ThreadLocal用户上下文正常工作</small>
+                    </div>
+                `;
+                
+            } catch (error) {
+                document.getElementById('apiResult').innerHTML = `
+                    <div class="error-box">
+                        <strong>❌ 创建帖子失败</strong><br>
+                        ${error.response?.data?.message || error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // 测试获取帖子（需要登录）
+        async function testGetPosts() {
+            if (!currentToken) {
+                document.getElementById('apiResult').innerHTML = `
+                    <div class="error-box">
+                        <strong>❌ 请先登录</strong>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const response = await axios.get('/post/select?id=1');
+                
+                document.getElementById('apiResult').innerHTML = `
+                    <div class="success-box">
+                        <strong>✅ 获取帖子测试成功</strong><br>
+                        获取到 ${response.data.data.length} 条帖子数据<br>
+                        <small>这证明JWT拦截器验证通过</small>
+                    </div>
+                `;
+                
+            } catch (error) {
+                document.getElementById('apiResult').innerHTML = `
+                    <div class="error-box">
+                        <strong>❌ 获取帖子失败</strong><br>
+                        ${error.response?.data?.message || error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // 测试无令牌请求
+        async function testWithoutToken() {
+            try {
+                // 临时移除token
+                const tempToken = axios.defaults.headers.common['Authorization'];
+                delete axios.defaults.headers.common['Authorization'];
+                
+                const response = await axios.get('/post/select?id=1');
+                
+                // 恢复token
+                if (tempToken) {
+                    axios.defaults.headers.common['Authorization'] = tempToken;
+                }
+                
+                document.getElementById('apiResult').innerHTML = `
+                    <div class="error-box">
+                        <strong>⚠️ 意外情况</strong><br>
+                        无令牌请求竟然成功了，拦截器可能没有正常工作
+                    </div>
+                `;
+                
+            } catch (error) {
+                // 恢复token
+                if (currentToken) {
+                    axios.defaults.headers.common['Authorization'] = `Bearer ${currentToken}`;
+                }
+                
+                if (error.response?.status === 401) {
+                    document.getElementById('apiResult').innerHTML = `
+                        <div class="success-box">
+                            <strong>✅ 拦截器测试成功</strong><br>
+                            无令牌请求被正确拦截（401错误）<br>
+                            <small>这证明JWT拦截器正常工作</small>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('apiResult').innerHTML = `
+                        <div class="error-box">
+                            <strong>❌ 测试失败</strong><br>
+                            ${error.response?.data?.message || error.message}
+                        </div>
+                    `;
+                }
+            }
+        }
+    </script>
+</body>
+</html> 

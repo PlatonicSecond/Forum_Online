@@ -513,13 +513,13 @@
                     let details = '';
                     
                     // 1. 网络连接错误 - 前端连接后端失败
-                    if (error.code === 'ECONNREFUSED' || error.message.includes('ECONNREFUSED')) {
+                    if (error.code === 'ECONNREFUSED' || (error.message && error.message.includes('ECONNREFUSED'))) {
                         userMessage = '❌ 前端连接后端失败，无法连接到服务器';
                         details = '可能原因：\n1. 后端服务器未启动\n2. 端口号配置错误\n3. 防火墙阻止了连接\n4. 服务器地址错误';
                     }
                     
                     // 2. 网络超时错误
-                    else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+                    else if (error.code === 'ECONNABORTED' || (error.message && error.message.includes('timeout'))) {
                         userMessage = '⏱️ 请求超时，请检查网络连接后重试';
                         details = '请求在规定时间内未收到响应，可能是网络延迟或服务器负载过高';
                     }
@@ -572,6 +572,10 @@
                             case 404:
                                 userMessage = '🔍 注册接口不存在，请检查URL';
                                 details = '可能原因：\n1. 注册API端点配置错误\n2. 后端路由配置问题\n3. 接口地址拼写错误';
+                                break;
+                            case 405:
+                                userMessage = '🚫 请求方法不被允许，服务器不支持该HTTP方法';
+                                details = '注册失败原因：\n1. 后端服务器未启动或配置错误\n2. 注册接口只支持POST方法，但收到了其他方法\n3. 服务器路由配置问题\n4. 可能是静态文件服务器，不支持API请求';
                                 break;
                             case 409:
                                 // 重点处理用户名重复的情况
@@ -832,7 +836,7 @@ ${this.message.technical}
                             timestamp: new Date().toISOString()
                         });
                         
-                        const response = await axios.post('/user/register', {
+                        const response = await axios.post('http://localhost:8091/user/register', {
                             username: this.form.username,
                             password: this.form.password,
                             confirmPassword: this.form.confirmPassword,
@@ -842,9 +846,14 @@ ${this.message.technical}
                         console.log('📥 收到服务器响应:', response.data);
                         
                         if (response.data.code === 200) {
-                            this.showMessage('🎉 注册成功！即将跳转到登录页面...', 'success');
+                            this.showMessage('🎉 注册成功！即将跳转到主页...', 'success');
+                            
+                            // 保存用户信息到localStorage
+                            localStorage.setItem('username', this.form.username);
+                            localStorage.setItem('userRole', this.form.roleId);
+                            
                             setTimeout(() => {
-                                window.location.href = 'login.html?from=register';
+                                window.location.href = `home.html?username=${encodeURIComponent(this.form.username)}`;
                             }, 2000);
                         } else {
                             // 处理后端返回的业务错误
