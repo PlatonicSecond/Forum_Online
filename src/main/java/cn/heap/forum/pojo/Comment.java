@@ -1,17 +1,22 @@
 package cn.heap.forum.pojo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
 
 @Data
+@TableName("comment")
 public class Comment {
-    private static final long serialVersionUID = 1L;
+    @TableId("commentId")
     private Integer commentId;
     private String content;
     private Integer authorId;
     private Integer replyToUserId;
     private Integer postId;
+    @TableField("createTime")
     private Date createTime;
 }
