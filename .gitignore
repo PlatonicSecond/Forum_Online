@@ -36,5 +36,4 @@ build/
 
 ### Mac OS ###
 .DS_Store
-/src/main/resources/static/images/png_for_Post/
-src/main/resources/static/images/png_for_potrait
+
