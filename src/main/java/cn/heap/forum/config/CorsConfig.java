@@ -21,10 +21,10 @@ public class CorsConfig {
         config.addAllowedMethod("*");
         // 允许携带凭证信息
         config.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-        
+
         return new CorsFilter(source);
     }
 } 
