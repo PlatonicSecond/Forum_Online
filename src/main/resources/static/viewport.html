@@ -6,6 +6,10 @@
     <title>论坛 </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 引入 SockJS 客户端 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <!-- 引入 STOMP 客户端 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 
     <!-- Tailwind 配置 -->
     <script>
@@ -382,6 +386,85 @@
         // 推荐板块显示后5个帖子
         renderPosts('recommend-section', mockData.posts.slice(5, 10));
     });
+
+    // 添加评论
+    document.getElementById('add-comment-btn').addEventListener('click', async () => {
+        const content = document.getElementById('comment-content').value;
+        if (content.trim() === '') {
+            alert('请输入评论内容');
+            return;
+        }
+        const comment = {
+            postId: currentPostId,
+            content
+        };
+        try {
+            const response = await axios.post(baseUrl, comment);
+            console.log('评论添加成功', response.data);
+            document.getElementById('comment-content').value = '';
+            getCommentsByPostId(currentPostId);
+        } catch (error) {
+            console.error('评论添加失败', error);
+            alert('评论添加失败，请稍后再试');
+        }
+    });
+
+    // 获取某个帖子下的所有评论
+    const getCommentsByPostId = async (postId) => {
+        try {
+            const response = await axios.get(`${baseUrl}/post/${postId}`);
+            const comments = response.data;
+            const commentList = document.getElementById('comment-list');
+            commentList.innerHTML = '';
+            comments.forEach(comment => {
+                const div = document.createElement('div');
+                div.classList.add('border-b', 'border-gray-300', 'py-4');
+                div.innerHTML = `
+                        <p>评论 ID: ${comment.commentId}</p>
+                        <p>内容: ${comment.content}</p>
+                        <button onclick="deleteComment(${comment.commentId}, ${postId})" class="bg-red-500 text-white px-4 py-2 rounded">删除</button>
+                        <button onclick="editComment(${comment.commentId}, '${comment.content}', ${postId})" class="bg-yellow-500 text-white px-4 py-2 rounded">编辑</button>
+                    `;
+                commentList.appendChild(div);
+            });
+        } catch (error) {
+            console.error('评论获取失败', error);
+            alert('评论获取失败，请稍后再试');
+        }
+    };
+
+    // 删除评论
+    const deleteComment = async (commentId, postId) => {
+        if (confirm('确定要删除该评论吗？')) {
+            try {
+                const response = await axios.delete(`${baseUrl}/${commentId}`);
+                console.log('评论删除成功', response.data);
+                getCommentsByPostId(postId);
+            } catch (error) {
+                console.error('评论删除失败', error);
+                alert('评论删除失败，请稍后再试');
+            }
+        }
+    };
+
+    // 编辑评论
+    const editComment = async (commentId, content, postId) => {
+        const newContent = prompt('请输入新的评论内容', content);
+        if (newContent) {
+            const comment = {
+                commentId,
+                content: newContent
+            };
+            try {
+                const response = await axios.put(baseUrl, comment);
+                console.log('评论修改成功', response.data);
+                getCommentsByPostId(postId);
+            } catch (error) {
+                console.error('评论修改失败', error);
+                alert('评论修改失败，请稍后再试');
+            }
+        }
+    };
 </script>
 </body>
 </html>
