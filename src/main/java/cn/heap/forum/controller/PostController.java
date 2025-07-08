@@ -1,6 +1,7 @@
 package cn.heap.forum.controller;
 
 import cn.heap.forum.pojo.Post;
+import cn.heap.forum.pojo.PostDTO;
 import cn.heap.forum.service.PostService;
 import cn.heap.forum.util.ServerResult;
 import cn.heap.forum.util.UserContext;
@@ -25,22 +26,14 @@ public class PostController {
         return ServerResult.success(postService.selectAll(id));
     }
 
-    @PostMapping("/create")
+    @PostMapping("/add")
     @ApiOperation(value = "创建帖子", notes = "用户创建新帖子")
-    public ServerResult<String> createPost(@RequestBody Post post) {
+    public ServerResult<Void> add(@RequestBody PostDTO post) {
         try {
             System.out.println("=== 开始创建帖子 ===");
 
             // 从ThreadLocal获取当前登录用户信息
             Integer currentUserId = UserContext.getCurrentUserId();
-            String currentUsername = UserContext.getCurrentUsername();
-            Integer currentRoleId = UserContext.getCurrentUserRoleId();
-
-            System.out.println("🔍 ThreadLocal用户信息检查:");
-            System.out.println("  - 用户ID: " + currentUserId);
-            System.out.println("  - 用户名: " + currentUsername);
-            System.out.println("  - 角色ID: " + currentRoleId);
-            System.out.println("  - 是否已登录: " + UserContext.isLoggedIn());
 
             if (currentUserId == null) {
                 System.out.println("❌ ThreadLocal中没有用户信息，用户未登录");
@@ -50,13 +43,8 @@ public class PostController {
             // 设置帖子的创建者信息
             post.setAuthorId(currentUserId);
 
-            System.out.println("✅ ThreadLocal验证成功！");
-            System.out.println("📝 帖子信息:");
-            System.out.println("  - 内容: " + post.getContent());
-            System.out.println("  - 创建者ID: " + post.getAuthorId());
-            System.out.println("  - 板块ID: " + post.getPlateId());
-
-            return ServerResult.success("帖子创建成功！ThreadLocal正常工作，用户: " + currentUsername);
+            postService.add(post);
+            return ServerResult.success();
 
         } catch (Exception e) {
             System.out.println("❌ 创建帖子异常: " + e.getMessage());
