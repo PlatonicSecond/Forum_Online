@@ -22,7 +22,7 @@ import java.util.List;
 public class UserController {
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -31,29 +31,29 @@ public class UserController {
     public ServerResult<LoginResponse> login(@RequestBody LoginRequest loginRequest){
         try {
             System.out.println("=== 开始处理登录请求 ===");
-            
+
             // 1. 参数基本验证
             if (loginRequest == null) {
                 System.out.println("❌ 登录请求为空");
                 return ServerResult.error(400, "登录信息不能为空");
             }
-            
+
             System.out.println("📝 登录请求信息:");
             System.out.println("  - 用户名: " + loginRequest.getUsername());
             System.out.println("  - 密码: " + loginRequest.getPassword());
-            
+
             if (loginRequest.getUsername() == null || loginRequest.getUsername().trim().isEmpty()) {
                 System.out.println("❌ 用户名为空");
                 return ServerResult.error(400, "用户名不能为空");
             }
-            
+
             if (loginRequest.getPassword() == null || loginRequest.getPassword().trim().isEmpty()) {
                 System.out.println("❌ 密码为空");
                 return ServerResult.error(400, "密码不能为空");
             }
-            
+
             System.out.println("✅ 参数验证通过");
-            
+
             // 2. 执行登录验证
             System.out.println("🔍 开始验证用户身份...");
             User user = userService.login(loginRequest);
@@ -61,25 +61,25 @@ public class UserController {
                 System.out.println("❌ 登录验证失败: 用户名或密码错误");
                 return ServerResult.error(401, "用户名或密码错误");
             }
-            
+
             System.out.println("✅ 登录验证成功!");
             System.out.println("📋 用户信息:");
             System.out.println("  - 用户ID: " + user.getUserId());
             System.out.println("  - 用户名: " + user.getUsername());
             System.out.println("  - 角色ID: " + user.getRoleId());
-            
+
             // 3. 生成JWT令牌
             System.out.println("🔐 生成JWT令牌...");
             String token = jwtUtil.generateToken(user.getUserId(), user.getUsername(), user.getRoleId());
             System.out.println("✅ JWT令牌生成成功: " + token.substring(0, 20) + "...");
-            
+
             // 4. 构造响应数据
             String roleName = user.getRoleId() == 1 ? "管理员" : "普通用户";
             LoginResponse loginResponse = new LoginResponse(token, user.getUsername(), user.getRoleId(), roleName);
-            
+
             System.out.println("🎉 登录成功! 返回响应数据");
             return ServerResult.success(loginResponse);
-            
+
         } catch (Exception e) {
             System.out.println("❌ 登录过程中发生异常: " + e.getMessage());
             e.printStackTrace();
@@ -95,39 +95,39 @@ public class UserController {
             if (registerRequest == null) {
                 return ServerResult.error(400, "注册信息不能为空");
             }
-            
+
             if (registerRequest.getUsername() == null || registerRequest.getUsername().trim().isEmpty()) {
                 return ServerResult.error(400, "用户名不能为空");
             }
-            
+
             if (registerRequest.getPassword() == null || registerRequest.getPassword().trim().isEmpty()) {
                 return ServerResult.error(400, "密码不能为空");
             }
-            
+
             if (registerRequest.getConfirmPassword() == null || registerRequest.getConfirmPassword().trim().isEmpty()) {
                 return ServerResult.error(400, "确认密码不能为空");
             }
-            
+
             // 2. 用户名长度验证
             if (registerRequest.getUsername().length() < 3 || registerRequest.getUsername().length() > 50) {
                 return ServerResult.error(400, "用户名长度必须在3-50个字符之间");
             }
-            
+
             // 3. 密码强度验证
             if (registerRequest.getPassword().length() < 6) {
                 return ServerResult.error(400, "密码长度至少6个字符");
             }
-            
+
             // 4. 两次密码一致性验证
             if (!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
                 return ServerResult.error(400, "两次输入的密码不一致");
             }
-            
+
             // 5. 检查用户名是否已存在
             if (userService.isUsernameExists(registerRequest.getUsername())) {
                 return ServerResult.error(409, "用户名已存在，请选择其他用户名");
             }
-            
+
             // 6. 执行注册
             boolean success = userService.register(registerRequest);
             if (success) {
@@ -135,7 +135,7 @@ public class UserController {
             } else {
                 return ServerResult.error(500, "注册失败，请稍后重试");
             }
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             return ServerResult.error(500, "服务器内部错误");
@@ -147,26 +147,26 @@ public class UserController {
     public ServerResult<String> updateUserInfo(@RequestBody UpdateUserRequest updateRequest){
         try {
             System.out.println("=== 开始处理更新用户信息请求 ===");
-            
+
             // 1. 从ThreadLocal获取当前用户ID
             Integer currentUserId = UserContext.getCurrentUserId();
             if (currentUserId == null) {
                 System.out.println("❌ 用户未登录");
                 return ServerResult.error(401, "用户未登录");
             }
-            
+
             System.out.println("📝 更新请求信息:");
             System.out.println("  - 当前用户ID: " + currentUserId);
             System.out.println("  - 新用户名: " + updateRequest.getUsername());
             System.out.println("  - 是否修改密码: " + (updateRequest.getNewPassword() != null && !updateRequest.getNewPassword().trim().isEmpty()));
             System.out.println("  - 头像路径: " + updateRequest.getAvatarPath());
-            
+
             // 2. 参数基本验证
             if (updateRequest == null) {
                 System.out.println("❌ 更新请求为空");
                 return ServerResult.error(400, "更新信息不能为空");
             }
-            
+
             // 3. 执行更新
             boolean success = userService.updateUserInfo(currentUserId, updateRequest);
             if (success) {
@@ -176,27 +176,27 @@ public class UserController {
                 System.out.println("❌ 用户信息更新失败");
                 return ServerResult.error(500, "更新失败，请检查输入信息");
             }
-            
+
         } catch (Exception e) {
             System.out.println("❌ 更新用户信息异常: " + e.getMessage());
             e.printStackTrace();
             return ServerResult.error(500, "服务器内部错误: " + e.getMessage());
         }
     }
-    
+
     @ApiOperation(value = "获取用户信息", notes = "获取当前登录用户的详细信息")
     @GetMapping("/user/info")
     public ServerResult<User> getUserInfo(){
         try {
             System.out.println("=== 获取用户信息 ===");
-            
+
             // 从ThreadLocal获取当前用户ID
             Integer currentUserId = UserContext.getCurrentUserId();
             if (currentUserId == null) {
                 System.out.println("❌ 用户未登录");
                 return ServerResult.error(401, "用户未登录");
             }
-            
+
             User user = userService.getUserById(currentUserId);
             if (user != null) {
                 // 不返回密码信息
@@ -207,52 +207,52 @@ public class UserController {
                 System.out.println("❌ 用户不存在");
                 return ServerResult.error(404, "用户不存在");
             }
-            
+
         } catch (Exception e) {
             System.out.println("❌ 获取用户信息异常: " + e.getMessage());
             e.printStackTrace();
             return ServerResult.error(500, "服务器内部错误: " + e.getMessage());
         }
     }
-    
+
     @ApiOperation(value = "验证JWT和ThreadLocal", notes = "检查JWT令牌和ThreadLocal用户上下文是否正常工作")
     @GetMapping("/user/verify")
     public ServerResult<String> verifyJwtAndThreadLocal(){
         try {
             System.out.println("=== JWT和ThreadLocal验证API ===");
-            
+
             // 从ThreadLocal获取用户信息
             Integer currentUserId = UserContext.getCurrentUserId();
             String currentUsername = UserContext.getCurrentUsername();
             Integer currentRoleId = UserContext.getCurrentUserRoleId();
             boolean isLoggedIn = UserContext.isLoggedIn();
-            
+
             System.out.println("🔍 ThreadLocal状态检查:");
             System.out.println("  - 用户ID: " + currentUserId);
             System.out.println("  - 用户名: " + currentUsername);
             System.out.println("  - 角色ID: " + currentRoleId);
             System.out.println("  - 登录状态: " + isLoggedIn);
-            
+
             if (!isLoggedIn) {
                 System.out.println("❌ ThreadLocal中没有用户信息");
                 return ServerResult.error(401, "ThreadLocal中没有用户信息，JWT拦截器可能未正常工作");
             }
-            
+
             String message = String.format(
-                "✅ JWT和ThreadLocal验证成功！\n" +
-                "用户ID: %d\n" +
-                "用户名: %s\n" +
-                "角色ID: %d\n" +
-                "这证明:\n" +
-                "1. JWT令牌验证正常\n" +
-                "2. JWT拦截器正常工作\n" +
-                "3. ThreadLocal用户上下文正常设置",
-                currentUserId, currentUsername, currentRoleId
+                    "✅ JWT和ThreadLocal验证成功！\n" +
+                            "用户ID: %d\n" +
+                            "用户名: %s\n" +
+                            "角色ID: %d\n" +
+                            "这证明:\n" +
+                            "1. JWT令牌验证正常\n" +
+                            "2. JWT拦截器正常工作\n" +
+                            "3. ThreadLocal用户上下文正常设置",
+                    currentUserId, currentUsername, currentRoleId
             );
-            
+
             System.out.println("✅ 验证成功！");
             return ServerResult.success(message);
-            
+
         } catch (Exception e) {
             System.out.println("❌ 验证异常: " + e.getMessage());
             e.printStackTrace();

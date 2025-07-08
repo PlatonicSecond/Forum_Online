@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>论坛注册 - Forum Online</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .register-container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      animation: slideInUp 0.6s ease-out;
+    }
+
+    @keyframes slideInUp {
+      from {
+        transform: translateY(30px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo h1 {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .logo p {
+      color: #666;
+      font-size: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      background: #f8f9fa;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-group input.error {
+      border-color: #dc3545;
+      background: #fdf2f2;
+    }
+
+    .error-message {
+      color: #dc3545;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .register-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+
+    .register-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .register-btn:active {
+      transform: translateY(0);
+    }
+
+    .register-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .login-link {
+      text-align: center;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e1e5e9;
+    }
+
+    .login-link a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+
+    .info-message {
+      background: #e7f3ff;
+      color: #0c5460;
+      border: 1px solid #b8daff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .password-strength {
+      margin-top: 5px;
+      font-size: 12px;
+    }
+
+    .password-strength.weak {
+      color: #dc3545;
+    }
+
+    .password-strength.medium {
+      color: #ffc107;
+    }
+
+    .password-strength.strong {
+      color: #28a745;
+    }
+
+    @media (max-width: 480px) {
+      .register-container {
+        padding: 30px 20px;
+      }
+
+      .logo h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="register-container">
+  <div class="logo">
+    <h1>📝 Forum Online</h1>
+    <p>注册新账户</p>
+  </div>
+
+  <div class="info-message">
+    💡 欢迎加入论坛！请填写以下信息完成注册
+  </div>
+
+  <form id="registerForm">
+    <div class="form-group">
+      <label for="username">用户名</label>
+      <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="请输入用户名（3-50字符）"
+              required
+              minlength="3"
+              maxlength="50"
+      />
+      <div class="error-message" id="usernameError"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="password">密码</label>
+      <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="请输入密码（至少6个字符）"
+              required
+              minlength="6"
+      />
+      <div class="password-strength" id="passwordStrength"></div>
+      <div class="error-message" id="passwordError"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="confirmPassword">确认密码</label>
+      <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              placeholder="请再次输入密码"
+              required
+      />
+      <div class="error-message" id="confirmPasswordError"></div>
+    </div>
+
+    <button type="submit" class="register-btn" id="registerBtn">
+      注册
+    </button>
+  </form>
+
+  <div class="login-link">
+    <p>已有账户？<a href="login.html">立即登录</a></p>
+  </div>
+</div>
+
+<script src="js/axios.min.js"></script>
+<script>
+  // 设置axios基础URL
+  axios.defaults.baseURL = 'http://localhost:8091';
+
+
+  // 表单元素
+  const registerForm = document.getElementById('registerForm');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const confirmPasswordInput = document.getElementById('confirmPassword');
+  const registerBtn = document.getElementById('registerBtn');
+
+  // 错误消息元素
+  const usernameError = document.getElementById('usernameError');
+  const passwordError = document.getElementById('passwordError');
+  const confirmPasswordError = document.getElementById('confirmPasswordError');
+  const passwordStrength = document.getElementById('passwordStrength');
+
+  // 密码强度检查
+  function checkPasswordStrength(password) {
+    if (password.length < 6) {
+      passwordStrength.textContent = '密码太短';
+      passwordStrength.className = 'password-strength weak';
+      return;
+    }
+
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+    if (strength <= 2) {
+      passwordStrength.textContent = '密码强度：弱';
+      passwordStrength.className = 'password-strength weak';
+    } else if (strength <= 3) {
+      passwordStrength.textContent = '密码强度：中等';
+      passwordStrength.className = 'password-strength medium';
+    } else {
+      passwordStrength.textContent = '密码强度：强';
+      passwordStrength.className = 'password-strength strong';
+    }
+  }
+
+  // 显示错误消息
+  function showError(element, message) {
+    element.textContent = message;
+    element.style.display = 'block';
+    element.parentElement.querySelector('input').classList.add('error');
+  }
+
+  // 隐藏错误消息
+  function hideError(element) {
+    element.style.display = 'none';
+    element.parentElement.querySelector('input').classList.remove('error');
+  }
+
+  // 验证用户名
+  function validateUsername() {
+    const username = usernameInput.value.trim();
+    if (!username) {
+      showError(usernameError, '用户名不能为空');
+      return false;
+    }
+    if (username.length < 3) {
+      showError(usernameError, '用户名至少3个字符');
+      return false;
+    }
+    if (username.length > 50) {
+      showError(usernameError, '用户名最多50个字符');
+      return false;
+    }
+    hideError(usernameError);
+    return true;
+  }
+
+  // 验证密码
+  function validatePassword() {
+    const password = passwordInput.value;
+    if (!password) {
+      showError(passwordError, '密码不能为空');
+      return false;
+    }
+    if (password.length < 6) {
+      showError(passwordError, '密码至少6个字符');
+      return false;
+    }
+    hideError(passwordError);
+    return true;
+  }
+
+  // 验证确认密码
+  function validateConfirmPassword() {
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+    if (!confirmPassword) {
+      showError(confirmPasswordError, '请确认密码');
+      return false;
+    }
+    if (password !== confirmPassword) {
+      showError(confirmPasswordError, '两次输入的密码不一致');
+      return false;
+    }
+    hideError(confirmPasswordError);
+    return true;
+  }
+
+  // 事件监听器
+  usernameInput.addEventListener('blur', validateUsername);
+  passwordInput.addEventListener('input', function() {
+    checkPasswordStrength(this.value);
+    if (this.value) validatePassword();
+  });
+  passwordInput.addEventListener('blur', validatePassword);
+  confirmPasswordInput.addEventListener('input', validateConfirmPassword);
+  confirmPasswordInput.addEventListener('blur', validateConfirmPassword);
+
+  // 注册表单提交
+  registerForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    // 验证所有字段
+    const isUsernameValid = validateUsername();
+    const isPasswordValid = validatePassword();
+    const isConfirmPasswordValid = validateConfirmPassword();
+
+    if (!isUsernameValid || !isPasswordValid || !isConfirmPasswordValid) {
+      return;
+    }
+
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+
+    // 禁用提交按钮
+    registerBtn.disabled = true;
+    registerBtn.textContent = '注册中...';
+
+    try {
+      // 调用后端注册API
+      const response = await axios.post('/user/register', {
+        username: username,
+        password: password,
+        confirmPassword: confirmPassword,
+        roleId: 0 // 默认为普通用户
+      });
+
+      if (response.data && response.data.code === 200) {
+        alert('🎉 注册成功！即将跳转到登录页面...');
+
+        // 跳转到登录页面，并添加来源参数
+        setTimeout(() => {
+          window.location.href = 'login.html?from=register';
+        }, 1000);
+      } else {
+        alert('❌ 注册失败：' + (response.data?.message || '未知错误'));
+      }
+
+    } catch (error) {
+      console.error('注册错误:', error);
+      let errorMessage = '注册失败';
+
+      if (error.response) {
+        errorMessage = error.response.data?.message || `服务器错误 (${error.response.status})`;
+      } else if (error.request) {
+        errorMessage = '网络错误，无法连接到服务器';
+      } else {
+        errorMessage = error.message;
+      }
+
+      alert('❌ ' + errorMessage);
+    } finally {
+      // 恢复提交按钮
+      registerBtn.disabled = false;
+      registerBtn.textContent = '注册';
+    }
+  });
+</script>
+</body>
+</html>

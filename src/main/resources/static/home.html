@@ -436,334 +436,334 @@
     </style>
 </head>
 <body>
-    <div id="app">
-        <header class="header">
-            <div class="nav-container">
-                <div class="logo">📝 Forum Online</div>
-                <nav class="nav-links">
-                    <a href="#home">首页</a>
-                    <a href="#forums">论坛</a>
-                    <a href="#topics">话题</a>
-                    <a href="#about">关于</a>
-                </nav>
-                <div class="user-info">
-                    <span class="welcome-text" @click="openProfile">欢迎，{{ username }}！</span>
-                    <button class="profile-btn" @click="openProfile">个人资料</button>
-                    <button class="logout-btn" @click="logout">退出登录</button>
-                </div>
+<div id="app">
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">📝 Forum Online</div>
+            <nav class="nav-links">
+                <a href="#home">首页</a>
+                <a href="#forums">论坛</a>
+                <a href="#topics">话题</a>
+                <a href="#about">关于</a>
+            </nav>
+            <div class="user-info">
+                <span class="welcome-text" @click="openProfile">欢迎，{{ username }}！</span>
+                <button class="profile-btn" @click="openProfile">个人资料</button>
+                <button class="logout-btn" @click="logout">退出登录</button>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <main class="main-container">
-            <div class="welcome-card">
-                <h1 class="welcome-title">🎉 欢迎来到 Forum Online！</h1>
-                <p class="welcome-subtitle">您已成功注册并登录到我们的论坛社区</p>
-                <p style="color: #666; margin-bottom: 20px;">
-                    这里是一个简单的主页示例。您可以在这里浏览论坛内容、参与讨论、分享想法。
+    <main class="main-container">
+        <div class="welcome-card">
+            <h1 class="welcome-title">🎉 欢迎来到 Forum Online！</h1>
+            <p class="welcome-subtitle">您已成功注册并登录到我们的论坛社区</p>
+            <p style="color: #666; margin-bottom: 20px;">
+                这里是一个简单的主页示例。您可以在这里浏览论坛内容、参与讨论、分享想法。
+            </p>
+            <button class="action-btn" @click="exploreForums">开始探索论坛</button>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3 class="feature-title">参与讨论</h3>
+                <p class="feature-description">
+                    加入各种话题的讨论，分享您的观点和经验，与其他用户交流互动。
                 </p>
-                <button class="action-btn" @click="exploreForums">开始探索论坛</button>
+                <button class="action-btn" @click="goToDiscussions">查看讨论</button>
             </div>
 
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">💬</div>
-                    <h3 class="feature-title">参与讨论</h3>
-                    <p class="feature-description">
-                        加入各种话题的讨论，分享您的观点和经验，与其他用户交流互动。
-                    </p>
-                    <button class="action-btn" @click="goToDiscussions">查看讨论</button>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">📝</div>
-                    <h3 class="feature-title">发布内容</h3>
-                    <p class="feature-description">
-                        创建新的话题和帖子，分享您的想法、问题或有趣的内容。
-                    </p>
-                    <button class="action-btn" @click="createPost">发布帖子</button>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">👥</div>
-                    <h3 class="feature-title">社区互动</h3>
-                    <p class="feature-description">
-                        关注其他用户，建立社交网络，发现志同道合的朋友。
-                    </p>
-                    <button class="action-btn" @click="findFriends">寻找朋友</button>
-                </div>
+            <div class="feature-card">
+                <div class="feature-icon">📝</div>
+                <h3 class="feature-title">发布内容</h3>
+                <p class="feature-description">
+                    创建新的话题和帖子，分享您的想法、问题或有趣的内容。
+                </p>
+                <button class="action-btn" @click="createPost">发布帖子</button>
             </div>
-        </main>
 
-        <footer class="footer">
-            <p>&copy; 2025 Forum Online. 一个简单而美好的论坛社区。</p>
-        </footer>
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3 class="feature-title">社区互动</h3>
+                <p class="feature-description">
+                    关注其他用户，建立社交网络，发现志同道合的朋友。
+                </p>
+                <button class="action-btn" @click="findFriends">寻找朋友</button>
+            </div>
+        </div>
+    </main>
 
-        <!-- 用户信息管理模态框 -->
-        <div id="profileModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 class="modal-title">👤 个人资料管理</h2>
-                    <span class="close" @click="closeProfile">&times;</span>
+    <footer class="footer">
+        <p>&copy; 2025 Forum Online. 一个简单而美好的论坛社区。</p>
+    </footer>
+
+    <!-- 用户信息管理模态框 -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">👤 个人资料管理</h2>
+                <span class="close" @click="closeProfile">&times;</span>
+            </div>
+            <div class="modal-body">
+                <!-- 消息提示 -->
+                <div v-if="profileMessage" :class="['alert', profileMessage.type === 'success' ? 'alert-success' : 'alert-error']">
+                    {{ profileMessage.text }}
                 </div>
-                <div class="modal-body">
-                    <!-- 消息提示 -->
-                    <div v-if="profileMessage" :class="['alert', profileMessage.type === 'success' ? 'alert-success' : 'alert-error']">
-                        {{ profileMessage.text }}
-                    </div>
 
-                    <!-- 基本信息区域 -->
-                    <div class="form-section">
-                        <h4>📋 基本信息</h4>
-                        <div class="form-group">
-                            <label for="currentUsername">当前用户名</label>
-                            <input type="text" id="currentUsername" v-model="currentUserInfo.username" disabled>
-                        </div>
-                        <div class="form-group">
-                            <label for="newUsername">新用户名</label>
-                            <input type="text" id="newUsername" v-model="profileForm.username" placeholder="输入新用户名（可选）">
-                        </div>
-                        <div class="form-group">
-                            <label for="avatarPath">头像路径</label>
-                            <input type="text" id="avatarPath" v-model="profileForm.avatarPath" placeholder="输入头像URL（可选）">
-                        </div>
-                        <div class="form-group">
-                            <label for="registerTime">注册时间</label>
-                            <input type="text" id="registerTime" :value="formatDate(currentUserInfo.registerTime)" disabled>
-                        </div>
+                <!-- 基本信息区域 -->
+                <div class="form-section">
+                    <h4>📋 基本信息</h4>
+                    <div class="form-group">
+                        <label for="currentUsername">当前用户名</label>
+                        <input type="text" id="currentUsername" v-model="currentUserInfo.username" disabled>
                     </div>
+                    <div class="form-group">
+                        <label for="newUsername">新用户名</label>
+                        <input type="text" id="newUsername" v-model="profileForm.username" placeholder="输入新用户名（可选）">
+                    </div>
+                    <div class="form-group">
+                        <label for="avatarPath">头像路径</label>
+                        <input type="text" id="avatarPath" v-model="profileForm.avatarPath" placeholder="输入头像URL（可选）">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerTime">注册时间</label>
+                        <input type="text" id="registerTime" :value="formatDate(currentUserInfo.registerTime)" disabled>
+                    </div>
+                </div>
 
-                    <!-- 密码修改区域 -->
-                    <div class="form-section">
-                        <h4>🔐 修改密码</h4>
-                        <div class="alert alert-info">
-                            如果不需要修改密码，请保持密码字段为空
-                        </div>
-                        <div class="form-group">
-                            <label for="currentPassword">当前密码</label>
-                            <input type="password" id="currentPassword" v-model="profileForm.password" placeholder="输入当前密码">
-                        </div>
-                        <div class="form-group">
-                            <label for="newPassword">新密码</label>
-                            <input type="password" id="newPassword" v-model="profileForm.newPassword" placeholder="输入新密码（至少6个字符）">
-                        </div>
-                        <div class="form-group">
-                            <label for="confirmNewPassword">确认新密码</label>
-                            <input type="password" id="confirmNewPassword" v-model="profileForm.confirmNewPassword" placeholder="再次输入新密码">
-                        </div>
+                <!-- 密码修改区域 -->
+                <div class="form-section">
+                    <h4>🔐 修改密码</h4>
+                    <div class="alert alert-info">
+                        如果不需要修改密码，请保持密码字段为空
                     </div>
+                    <div class="form-group">
+                        <label for="currentPassword">当前密码</label>
+                        <input type="password" id="currentPassword" v-model="profileForm.password" placeholder="输入当前密码">
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">新密码</label>
+                        <input type="password" id="newPassword" v-model="profileForm.newPassword" placeholder="输入新密码（至少6个字符）">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmNewPassword">确认新密码</label>
+                        <input type="password" id="confirmNewPassword" v-model="profileForm.confirmNewPassword" placeholder="再次输入新密码">
+                    </div>
+                </div>
 
-                    <!-- 按钮区域 -->
-                    <div class="btn-group">
-                        <button class="btn btn-secondary" @click="closeProfile">取消</button>
-                        <button class="btn btn-primary" @click="updateProfile" :disabled="isUpdating">
-                            {{ isUpdating ? '更新中...' : '保存更改' }}
-                        </button>
-                    </div>
+                <!-- 按钮区域 -->
+                <div class="btn-group">
+                    <button class="btn btn-secondary" @click="closeProfile">取消</button>
+                    <button class="btn btn-primary" @click="updateProfile" :disabled="isUpdating">
+                        {{ isUpdating ? '更新中...' : '保存更改' }}
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="js/vue.js"></script>
-    <script src="js/axios.min.js"></script>
-    <script>
-        // 设置axios基础URL
-        axios.defaults.baseURL = 'http://localhost:8091';
-        
-        // 从localStorage获取token并设置到axios header
-        const token = localStorage.getItem('token');
-        if (token) {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        }
+<script src="js/vue.js"></script>
+<script src="js/axios.min.js"></script>
+<script>
+    // 设置axios基础URL
+    axios.defaults.baseURL = 'http://localhost:8091';
 
-        new Vue({
-            el: '#app',
-            data: {
-                username: '用户',
-                currentUserInfo: {
-                    userId: null,
-                    username: '',
-                    avatarPath: '',
-                    roleId: null,
-                    registerTime: null
-                },
-                profileForm: {
-                    username: '',
-                    password: '',
-                    newPassword: '',
-                    confirmNewPassword: '',
-                    avatarPath: ''
-                },
-                profileMessage: null,
-                isUpdating: false
+    // 从localStorage获取token并设置到axios header
+    const token = localStorage.getItem('token');
+    if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+
+    new Vue({
+        el: '#app',
+        data: {
+            username: '用户',
+            currentUserInfo: {
+                userId: null,
+                username: '',
+                avatarPath: '',
+                roleId: null,
+                registerTime: null
             },
-            mounted() {
-                // 从URL参数获取用户名
-                const urlParams = new URLSearchParams(window.location.search);
-                const usernameParam = urlParams.get('username');
-                if (usernameParam) {
-                    this.username = usernameParam;
-                }
+            profileForm: {
+                username: '',
+                password: '',
+                newPassword: '',
+                confirmNewPassword: '',
+                avatarPath: ''
+            },
+            profileMessage: null,
+            isUpdating: false
+        },
+        mounted() {
+            // 从URL参数获取用户名
+            const urlParams = new URLSearchParams(window.location.search);
+            const usernameParam = urlParams.get('username');
+            if (usernameParam) {
+                this.username = usernameParam;
+            }
 
-                // 或者从localStorage获取
-                const storedUsername = localStorage.getItem('username');
-                if (storedUsername) {
-                    this.username = storedUsername;
-                }
+            // 或者从localStorage获取
+            const storedUsername = localStorage.getItem('username');
+            if (storedUsername) {
+                this.username = storedUsername;
+            }
 
-                // 检查是否有token，没有则跳转到登录页面
+            // 检查是否有token，没有则跳转到登录页面
+            if (!token) {
+                alert('请先登录！');
+                window.location.href = 'test-login.html';
+                return;
+            }
+
+            // 如果有token，加载用户详细信息
+            this.loadUserInfo();
+        },
+        methods: {
+            async loadUserInfo() {
+                try {
+                    const response = await axios.get('/user/info');
+                    if (response.data && response.data.code === 200) {
+                        this.currentUserInfo = response.data.data;
+                        this.username = this.currentUserInfo.username;
+                        console.log('用户信息加载成功:', this.currentUserInfo);
+                    }
+                } catch (error) {
+                    console.error('加载用户信息失败:', error);
+                }
+            },
+            openProfile() {
+                // 检查是否有token
                 if (!token) {
                     alert('请先登录！');
                     window.location.href = 'test-login.html';
                     return;
                 }
-                
-                // 如果有token，加载用户详细信息
-                this.loadUserInfo();
+
+                // 重置表单
+                this.profileForm = {
+                    username: '',
+                    password: '',
+                    newPassword: '',
+                    confirmNewPassword: '',
+                    avatarPath: this.currentUserInfo.avatarPath || ''
+                };
+                this.profileMessage = null;
+
+                // 显示模态框
+                document.getElementById('profileModal').style.display = 'block';
             },
-            methods: {
-                async loadUserInfo() {
-                    try {
-                        const response = await axios.get('/user/info');
-                        if (response.data && response.data.code === 200) {
-                            this.currentUserInfo = response.data.data;
-                            this.username = this.currentUserInfo.username;
-                            console.log('用户信息加载成功:', this.currentUserInfo);
-                        }
-                    } catch (error) {
-                        console.error('加载用户信息失败:', error);
-                    }
-                },
-                openProfile() {
-                    // 检查是否有token
-                    if (!token) {
-                        alert('请先登录！');
-                        window.location.href = 'test-login.html';
+            closeProfile() {
+                document.getElementById('profileModal').style.display = 'none';
+            },
+            async updateProfile() {
+                this.isUpdating = true;
+                this.profileMessage = null;
+
+                try {
+                    // 验证表单
+                    if (this.profileForm.newPassword && this.profileForm.newPassword !== this.profileForm.confirmNewPassword) {
+                        this.profileMessage = {
+                            type: 'error',
+                            text: '两次输入的新密码不一致'
+                        };
+                        this.isUpdating = false;
                         return;
                     }
 
-                    // 重置表单
-                    this.profileForm = {
-                        username: '',
-                        password: '',
-                        newPassword: '',
-                        confirmNewPassword: '',
-                        avatarPath: this.currentUserInfo.avatarPath || ''
-                    };
-                    this.profileMessage = null;
-                    
-                    // 显示模态框
-                    document.getElementById('profileModal').style.display = 'block';
-                },
-                closeProfile() {
-                    document.getElementById('profileModal').style.display = 'none';
-                },
-                async updateProfile() {
-                    this.isUpdating = true;
-                    this.profileMessage = null;
-
-                    try {
-                        // 验证表单
-                        if (this.profileForm.newPassword && this.profileForm.newPassword !== this.profileForm.confirmNewPassword) {
-                            this.profileMessage = {
-                                type: 'error',
-                                text: '两次输入的新密码不一致'
-                            };
-                            this.isUpdating = false;
-                            return;
-                        }
-
-                        if (this.profileForm.newPassword && this.profileForm.newPassword.length < 6) {
-                            this.profileMessage = {
-                                type: 'error',
-                                text: '新密码长度至少6个字符'
-                            };
-                            this.isUpdating = false;
-                            return;
-                        }
-
-                        if (this.profileForm.newPassword && !this.profileForm.password) {
-                            this.profileMessage = {
-                                type: 'error',
-                                text: '修改密码时必须输入当前密码'
-                            };
-                            this.isUpdating = false;
-                            return;
-                        }
-
-                        // 发送更新请求
-                        const response = await axios.put('/user/update', this.profileForm);
-                        
-                        if (response.data && response.data.code === 200) {
-                            this.profileMessage = {
-                                type: 'success',
-                                text: '用户信息更新成功！'
-                            };
-                            
-                            // 重新加载用户信息
-                            await this.loadUserInfo();
-                            
-                            // 2秒后关闭模态框
-                            setTimeout(() => {
-                                this.closeProfile();
-                            }, 2000);
-                            
-                        } else {
-                            this.profileMessage = {
-                                type: 'error',
-                                text: response.data?.message || '更新失败'
-                            };
-                        }
-                        
-                    } catch (error) {
-                        console.error('更新用户信息失败:', error);
+                    if (this.profileForm.newPassword && this.profileForm.newPassword.length < 6) {
                         this.profileMessage = {
                             type: 'error',
-                            text: error.response?.data?.message || '更新失败，请检查输入信息'
+                            text: '新密码长度至少6个字符'
+                        };
+                        this.isUpdating = false;
+                        return;
+                    }
+
+                    if (this.profileForm.newPassword && !this.profileForm.password) {
+                        this.profileMessage = {
+                            type: 'error',
+                            text: '修改密码时必须输入当前密码'
+                        };
+                        this.isUpdating = false;
+                        return;
+                    }
+
+                    // 发送更新请求
+                    const response = await axios.put('/user/update', this.profileForm);
+
+                    if (response.data && response.data.code === 200) {
+                        this.profileMessage = {
+                            type: 'success',
+                            text: '用户信息更新成功！'
+                        };
+
+                        // 重新加载用户信息
+                        await this.loadUserInfo();
+
+                        // 2秒后关闭模态框
+                        setTimeout(() => {
+                            this.closeProfile();
+                        }, 2000);
+
+                    } else {
+                        this.profileMessage = {
+                            type: 'error',
+                            text: response.data?.message || '更新失败'
                         };
                     }
-                    
-                    this.isUpdating = false;
-                },
-                formatDate(dateString) {
-                    if (!dateString) return '未知';
-                    const date = new Date(dateString);
-                    return date.toLocaleString('zh-CN');
-                },
-                logout() {
-                    // 清除本地存储的用户信息
-                    localStorage.removeItem('username');
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('token');
-                    
-                    // 清除axios header
-                    delete axios.defaults.headers.common['Authorization'];
-                    
-                    // 跳转到登录页面
-                    window.location.href = 'login.html';
-                },
-                exploreForums() {
-                    alert('🚀 论坛浏览功能即将开发！');
-                },
-                goToDiscussions() {
-                    alert('💬 讨论区功能即将开发！');
-                },
-                createPost() {
-                    alert('📝 发布帖子功能即将开发！');
-                },
-                findFriends() {
-                    alert('👥 社交功能即将开发！');
-                }
-            }
-        });
 
-        // 点击模态框外部关闭
-        window.onclick = function(event) {
-            const modal = document.getElementById('profileModal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
+                } catch (error) {
+                    console.error('更新用户信息失败:', error);
+                    this.profileMessage = {
+                        type: 'error',
+                        text: error.response?.data?.message || '更新失败，请检查输入信息'
+                    };
+                }
+
+                this.isUpdating = false;
+            },
+            formatDate(dateString) {
+                if (!dateString) return '未知';
+                const date = new Date(dateString);
+                return date.toLocaleString('zh-CN');
+            },
+            logout() {
+                // 清除本地存储的用户信息
+                localStorage.removeItem('username');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('token');
+
+                // 清除axios header
+                delete axios.defaults.headers.common['Authorization'];
+
+                // 跳转到登录页面
+                window.location.href = 'login.html';
+            },
+            exploreForums() {
+                alert('🚀 论坛浏览功能即将开发！');
+            },
+            goToDiscussions() {
+                alert('💬 讨论区功能即将开发！');
+            },
+            createPost() {
+                alert('📝 发布帖子功能即将开发！');
+            },
+            findFriends() {
+                alert('👥 社交功能即将开发！');
             }
         }
-    </script>
+    });
+
+    // 点击模态框外部关闭
+    window.onclick = function(event) {
+        const modal = document.getElementById('profileModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
 </body>
 </html> 

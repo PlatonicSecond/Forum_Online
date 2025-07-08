@@ -6,10 +6,6 @@
     <title>论坛 </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <!-- 引入 SockJS 客户端 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
-    <!-- 引入 STOMP 客户端 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 
     <!-- Tailwind 配置 -->
     <script>
@@ -33,27 +29,27 @@
 
     <style type="text/tailwindcss">
 
-            .content-auto {
-                content-visibility: auto;
-            }
-            .card-shadow {
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            }
-            .card-hover {
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-            }
-            .card-hover:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-            }
-            .nav-active {
-               /* border-bottom: 3px solid theme('colors.primary');
-                color: theme('colors.primary');
-                font-weight: 600;*/
-            }
-            .text-balance {
-                /*text-wrap: balance;*/
-            }
+        .content-auto {
+            content-visibility: auto;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        .nav-active {
+            /* border-bottom: 3px solid theme('colors.primary');
+             color: theme('colors.primary');
+             font-weight: 600;*/
+        }
+        .text-balance {
+            /*text-wrap: balance;*/
+        }
 
     </style>
 </head>
@@ -386,85 +382,6 @@
         // 推荐板块显示后5个帖子
         renderPosts('recommend-section', mockData.posts.slice(5, 10));
     });
-
-    // 添加评论
-    document.getElementById('add-comment-btn').addEventListener('click', async () => {
-        const content = document.getElementById('comment-content').value;
-        if (content.trim() === '') {
-            alert('请输入评论内容');
-            return;
-        }
-        const comment = {
-            postId: currentPostId,
-            content
-        };
-        try {
-            const response = await axios.post(baseUrl, comment);
-            console.log('评论添加成功', response.data);
-            document.getElementById('comment-content').value = '';
-            getCommentsByPostId(currentPostId);
-        } catch (error) {
-            console.error('评论添加失败', error);
-            alert('评论添加失败，请稍后再试');
-        }
-    });
-
-    // 获取某个帖子下的所有评论
-    const getCommentsByPostId = async (postId) => {
-        try {
-            const response = await axios.get(`${baseUrl}/post/${postId}`);
-            const comments = response.data;
-            const commentList = document.getElementById('comment-list');
-            commentList.innerHTML = '';
-            comments.forEach(comment => {
-                const div = document.createElement('div');
-                div.classList.add('border-b', 'border-gray-300', 'py-4');
-                div.innerHTML = `
-                        <p>评论 ID: ${comment.commentId}</p>
-                        <p>内容: ${comment.content}</p>
-                        <button onclick="deleteComment(${comment.commentId}, ${postId})" class="bg-red-500 text-white px-4 py-2 rounded">删除</button>
-                        <button onclick="editComment(${comment.commentId}, '${comment.content}', ${postId})" class="bg-yellow-500 text-white px-4 py-2 rounded">编辑</button>
-                    `;
-                commentList.appendChild(div);
-            });
-        } catch (error) {
-            console.error('评论获取失败', error);
-            alert('评论获取失败，请稍后再试');
-        }
-    };
-
-    // 删除评论
-    const deleteComment = async (commentId, postId) => {
-        if (confirm('确定要删除该评论吗？')) {
-            try {
-                const response = await axios.delete(`${baseUrl}/${commentId}`);
-                console.log('评论删除成功', response.data);
-                getCommentsByPostId(postId);
-            } catch (error) {
-                console.error('评论删除失败', error);
-                alert('评论删除失败，请稍后再试');
-            }
-        }
-    };
-
-    // 编辑评论
-    const editComment = async (commentId, content, postId) => {
-        const newContent = prompt('请输入新的评论内容', content);
-        if (newContent) {
-            const comment = {
-                commentId,
-                content: newContent
-            };
-            try {
-                const response = await axios.put(baseUrl, comment);
-                console.log('评论修改成功', response.data);
-                getCommentsByPostId(postId);
-            } catch (error) {
-                console.error('评论修改失败', error);
-                alert('评论修改失败，请稍后再试');
-            }
-        }
-    };
 </script>
 </body>
 </html>
@@ -722,7 +639,7 @@
             .register-container {
                 padding: 30px 20px;
             }
-            
+
             .logo h1 {
                 font-size: 24px;
             }
@@ -730,459 +647,459 @@
     </style>
 </head>
 <body>
-    <div id="app">
-        <div class="register-container">
-            <div class="logo">
-                <h1>📝 Forum Online</h1>
-                <p>创建您的账户开始交流</p>
+<div id="app">
+    <div class="register-container">
+        <div class="logo">
+            <h1>📝 Forum Online</h1>
+            <p>创建您的账户开始交流</p>
+        </div>
+
+        <!-- 成功/错误提示 -->
+        <div v-if="message.text" :class="['alert', message.type === 'success' ? 'alert-success' : 'alert-error']">
+            {{ message.text }}
+
+            <!-- 错误详情（仅在错误时显示） -->
+            <div v-if="message.type === 'error' && message.details" class="error-details">
+                <strong>错误详情:</strong><br>
+                {{ message.details }}
             </div>
 
-            <!-- 成功/错误提示 -->
-            <div v-if="message.text" :class="['alert', message.type === 'success' ? 'alert-success' : 'alert-error']">
-                {{ message.text }}
-                
-                <!-- 错误详情（仅在错误时显示） -->
-                <div v-if="message.type === 'error' && message.details" class="error-details">
-                    <strong>错误详情:</strong><br>
-                    {{ message.details }}
-                </div>
-                
-                <!-- 错误操作按钮 -->
-                <div v-if="message.type === 'error'" class="error-actions">
-                    <button class="error-btn" @click="copyErrorInfo" :disabled="copying">
-                        {{ copying ? '复制中...' : '📋 复制错误信息' }}
-                    </button>
-                    <button class="error-btn" @click="showTechnicalDetails = !showTechnicalDetails">
-                        {{ showTechnicalDetails ? '隐藏' : '显示' }}技术详情
-                    </button>
-                </div>
-                
-                <!-- 技术详情（展开时显示） -->
-                <div v-if="message.type === 'error' && showTechnicalDetails && message.technical" class="error-details">
-                    <strong>技术信息:</strong><br>
-                    {{ message.technical }}
-                </div>
+            <!-- 错误操作按钮 -->
+            <div v-if="message.type === 'error'" class="error-actions">
+                <button class="error-btn" @click="copyErrorInfo" :disabled="copying">
+                    {{ copying ? '复制中...' : '📋 复制错误信息' }}
+                </button>
+                <button class="error-btn" @click="showTechnicalDetails = !showTechnicalDetails">
+                    {{ showTechnicalDetails ? '隐藏' : '显示' }}技术详情
+                </button>
             </div>
 
-            <form @submit.prevent="register">
-                <div class="form-group">
-                    <label for="username">用户名</label>
-                    <input 
-                        type="text" 
-                        id="username" 
+            <!-- 技术详情（展开时显示） -->
+            <div v-if="message.type === 'error' && showTechnicalDetails && message.technical" class="error-details">
+                <strong>技术信息:</strong><br>
+                {{ message.technical }}
+            </div>
+        </div>
+
+        <form @submit.prevent="register">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input
+                        type="text"
+                        id="username"
                         v-model="form.username"
                         :class="{ error: errors.username }"
                         placeholder="请输入用户名（3-50个字符）"
                         @input="validateUsername"
                         @blur="validateUsername"
-                    />
-                    <span v-if="errors.username" class="error-message">{{ errors.username }}</span>
-                </div>
+                />
+                <span v-if="errors.username" class="error-message">{{ errors.username }}</span>
+            </div>
 
-                <div class="form-group">
-                    <label for="password">密码</label>
-                    <input 
-                        type="password" 
-                        id="password" 
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input
+                        type="password"
+                        id="password"
                         v-model="form.password"
                         :class="{ error: errors.password }"
                         placeholder="请输入密码（至少6个字符）"
                         @input="validatePassword"
                         @blur="validatePassword"
-                    />
-                    <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
-                    
-                    <!-- 密码强度指示器 -->
-                    <div v-if="form.password" class="password-strength">
-                        <div class="strength-text">密码强度：{{ passwordStrength.text }}</div>
-                        <div class="strength-bar">
-                            <div :class="['strength-fill', passwordStrength.class]"></div>
-                        </div>
+                />
+                <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
+
+                <!-- 密码强度指示器 -->
+                <div v-if="form.password" class="password-strength">
+                    <div class="strength-text">密码强度：{{ passwordStrength.text }}</div>
+                    <div class="strength-bar">
+                        <div :class="['strength-fill', passwordStrength.class]"></div>
                     </div>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label for="confirmPassword">确认密码</label>
-                    <input 
-                        type="password" 
-                        id="confirmPassword" 
+            <div class="form-group">
+                <label for="confirmPassword">确认密码</label>
+                <input
+                        type="password"
+                        id="confirmPassword"
                         v-model="form.confirmPassword"
                         :class="{ error: errors.confirmPassword }"
                         placeholder="请再次输入密码"
                         @input="validateConfirmPassword"
                         @blur="validateConfirmPassword"
-                    />
-                    <span v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</span>
-                </div>
+                />
+                <span v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</span>
+            </div>
 
-                <div class="form-group">
-                    <label for="roleId">用户角色</label>
-                    <select 
-                        id="roleId" 
+            <div class="form-group">
+                <label for="roleId">用户角色</label>
+                <select
+                        id="roleId"
                         v-model="form.roleId"
                         :class="{ error: errors.roleId }"
                         @change="validateRoleId"
-                    >
-                        <option value="">请选择角色</option>
-                        <option value="0">普通用户</option>
-                        <option value="1">管理员</option>
-                    </select>
-                    <span v-if="errors.roleId" class="error-message">{{ errors.roleId }}</span>
-                </div>
-
-                <button type="submit" class="register-btn" :disabled="loading || !isFormValid">
-                    <span v-if="loading" class="loading"></span>
-                    {{ loading ? '注册中...' : '立即注册' }}
-                </button>
-            </form>
-
-            <div class="login-link">
-                <p>已有账户？<a href="login.html">立即登录</a></p>
+                >
+                    <option value="">请选择角色</option>
+                    <option value="0">普通用户</option>
+                    <option value="1">管理员</option>
+                </select>
+                <span v-if="errors.roleId" class="error-message">{{ errors.roleId }}</span>
             </div>
 
-            <!-- 错误测试工具（开发调试用） -->
-            <div class="error-test" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e1e5e9;">
-                <p style="text-align: center; color: #666; font-size: 12px; margin-bottom: 10px;">
-                    🔧 错误处理测试工具（开发调试用）
-                </p>
-                <div style="display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;">
-                    <button class="error-btn" @click="testError('network')" style="font-size: 10px; padding: 2px 6px;">
-                        网络错误
-                    </button>
-                    <button class="error-btn" @click="testError('username')" style="font-size: 10px; padding: 2px 6px;">
-                        用户名重复
-                    </button>
-                    <button class="error-btn" @click="testError('database')" style="font-size: 10px; padding: 2px 6px;">
-                        数据库错误
-                    </button>
-                    <button class="error-btn" @click="testError('validation')" style="font-size: 10px; padding: 2px 6px;">
-                        验证错误
-                    </button>
-                </div>
+            <button type="submit" class="register-btn" :disabled="loading || !isFormValid">
+                <span v-if="loading" class="loading"></span>
+                {{ loading ? '注册中...' : '立即注册' }}
+            </button>
+        </form>
+
+        <div class="login-link">
+            <p>已有账户？<a href="login.html">立即登录</a></p>
+        </div>
+
+        <!-- 错误测试工具（开发调试用） -->
+        <div class="error-test" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e1e5e9;">
+            <p style="text-align: center; color: #666; font-size: 12px; margin-bottom: 10px;">
+                🔧 错误处理测试工具（开发调试用）
+            </p>
+            <div style="display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;">
+                <button class="error-btn" @click="testError('network')" style="font-size: 10px; padding: 2px 6px;">
+                    网络错误
+                </button>
+                <button class="error-btn" @click="testError('username')" style="font-size: 10px; padding: 2px 6px;">
+                    用户名重复
+                </button>
+                <button class="error-btn" @click="testError('database')" style="font-size: 10px; padding: 2px 6px;">
+                    数据库错误
+                </button>
+                <button class="error-btn" @click="testError('validation')" style="font-size: 10px; padding: 2px 6px;">
+                    验证错误
+                </button>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="js/vue.js"></script>
-    <script src="js/axios.min.js"></script>
-    <script>
-        new Vue({
-            el: '#app',
-            data: {
-                form: {
-                    username: '',
-                    password: '',
-                    confirmPassword: '',
-                    roleId: ''
-                },
-                errors: {},
-                message: {
-                    text: '',
-                    type: '',
-                    details: '',
-                    technical: ''
-                },
-                loading: false,
-                copying: false,
-                showTechnicalDetails: false,
-                lastError: null
+<script src="js/vue.js"></script>
+<script src="js/axios.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            form: {
+                username: '',
+                password: '',
+                confirmPassword: '',
+                roleId: ''
             },
-            computed: {
-                isFormValid() {
-                    return this.form.username && 
-                           this.form.password && 
-                           this.form.confirmPassword && 
-                           this.form.roleId &&
-                           Object.keys(this.errors).length === 0;
-                },
-                passwordStrength() {
-                    const password = this.form.password;
-                    if (!password) return { text: '', class: '' };
-                    
-                    let score = 0;
-                    if (password.length >= 6) score++;
-                    if (password.length >= 8) score++;
-                    if (/[a-z]/.test(password)) score++;
-                    if (/[A-Z]/.test(password)) score++;
-                    if (/[0-9]/.test(password)) score++;
-                    if (/[^A-Za-z0-9]/.test(password)) score++;
-                    
-                    if (score < 2) return { text: '弱', class: 'strength-weak' };
-                    if (score < 4) return { text: '一般', class: 'strength-fair' };
-                    if (score < 5) return { text: '良好', class: 'strength-good' };
-                    return { text: '强', class: 'strength-strong' };
+            errors: {},
+            message: {
+                text: '',
+                type: '',
+                details: '',
+                technical: ''
+            },
+            loading: false,
+            copying: false,
+            showTechnicalDetails: false,
+            lastError: null
+        },
+        computed: {
+            isFormValid() {
+                return this.form.username &&
+                    this.form.password &&
+                    this.form.confirmPassword &&
+                    this.form.roleId &&
+                    Object.keys(this.errors).length === 0;
+            },
+            passwordStrength() {
+                const password = this.form.password;
+                if (!password) return { text: '', class: '' };
+
+                let score = 0;
+                if (password.length >= 6) score++;
+                if (password.length >= 8) score++;
+                if (/[a-z]/.test(password)) score++;
+                if (/[A-Z]/.test(password)) score++;
+                if (/[0-9]/.test(password)) score++;
+                if (/[^A-Za-z0-9]/.test(password)) score++;
+
+                if (score < 2) return { text: '弱', class: 'strength-weak' };
+                if (score < 4) return { text: '一般', class: 'strength-fair' };
+                if (score < 5) return { text: '良好', class: 'strength-good' };
+                return { text: '强', class: 'strength-strong' };
+            }
+        },
+        methods: {
+            validateUsername() {
+                const username = this.form.username;
+                if (!username) {
+                    this.$set(this.errors, 'username', '用户名不能为空');
+                } else if (username.length < 3) {
+                    this.$set(this.errors, 'username', '用户名至少3个字符');
+                } else if (username.length > 50) {
+                    this.$set(this.errors, 'username', '用户名不能超过50个字符');
+                } else {
+                    this.$delete(this.errors, 'username');
                 }
             },
-            methods: {
-                validateUsername() {
-                    const username = this.form.username;
-                    if (!username) {
-                        this.$set(this.errors, 'username', '用户名不能为空');
-                    } else if (username.length < 3) {
-                        this.$set(this.errors, 'username', '用户名至少3个字符');
-                    } else if (username.length > 50) {
-                        this.$set(this.errors, 'username', '用户名不能超过50个字符');
-                    } else {
-                        this.$delete(this.errors, 'username');
-                    }
-                },
-                validatePassword() {
-                    const password = this.form.password;
-                    if (!password) {
-                        this.$set(this.errors, 'password', '密码不能为空');
-                    } else if (password.length < 6) {
-                        this.$set(this.errors, 'password', '密码至少6个字符');
-                    } else {
-                        this.$delete(this.errors, 'password');
-                    }
-                    
-                    // 重新验证确认密码
-                    if (this.form.confirmPassword) {
-                        this.validateConfirmPassword();
-                    }
-                },
-                validateConfirmPassword() {
-                    const confirmPassword = this.form.confirmPassword;
-                    if (!confirmPassword) {
-                        this.$set(this.errors, 'confirmPassword', '确认密码不能为空');
-                    } else if (confirmPassword !== this.form.password) {
-                        this.$set(this.errors, 'confirmPassword', '两次输入的密码不一致');
-                    } else {
-                        this.$delete(this.errors, 'confirmPassword');
-                    }
-                },
-                validateRoleId() {
-                    const roleId = this.form.roleId;
-                    if (!roleId) {
-                        this.$set(this.errors, 'roleId', '请选择用户角色');
-                    } else {
-                        this.$delete(this.errors, 'roleId');
-                    }
-                },
-                validateAll() {
-                    this.validateUsername();
-                    this.validatePassword();
+            validatePassword() {
+                const password = this.form.password;
+                if (!password) {
+                    this.$set(this.errors, 'password', '密码不能为空');
+                } else if (password.length < 6) {
+                    this.$set(this.errors, 'password', '密码至少6个字符');
+                } else {
+                    this.$delete(this.errors, 'password');
+                }
+
+                // 重新验证确认密码
+                if (this.form.confirmPassword) {
                     this.validateConfirmPassword();
-                    this.validateRoleId();
-                },
-                showMessage(text, type, details = '', technical = '') {
-                    this.message = { text, type, details, technical };
-                    this.showTechnicalDetails = false;
-                    setTimeout(() => {
-                        this.message = { text: '', type: '', details: '', technical: '' };
-                    }, 8000);
-                },
-                getDetailedErrorMessage(error) {
-                    // 保存错误对象供后续使用
-                    this.lastError = error;
-                    
-                    // 构建技术详情
-                    const technicalInfo = this.buildTechnicalInfo(error);
-                    
-                    let userMessage = '';
-                    let details = '';
-                    
-                    // 1. 网络连接错误 - 前端连接后端失败
-                    if (error.code === 'ECONNREFUSED' || (error.message && error.message.includes('ECONNREFUSED'))) {
-                        userMessage = '❌ 前端连接后端失败，无法连接到服务器';
-                        details = '可能原因：\n1. 后端服务器未启动\n2. 端口号配置错误\n3. 防火墙阻止了连接\n4. 服务器地址错误';
-                    }
-                    
-                    // 2. 网络超时错误
-                    else if (error.code === 'ECONNABORTED' || (error.message && error.message.includes('timeout'))) {
-                        userMessage = '⏱️ 请求超时，请检查网络连接后重试';
-                        details = '请求在规定时间内未收到响应，可能是网络延迟或服务器负载过高';
-                    }
-                    
-                    // 3. 服务器响应错误
-                    else if (error.response) {
-                        const status = error.response.status;
-                        const data = error.response.data;
-                        
-                        // 根据HTTP状态码返回具体错误
-                        switch (status) {
-                            case 400:
-                                // 检查具体的400错误类型
-                                if (data && data.message) {
-                                    if (data.message.includes('用户名不能为空')) {
-                                        userMessage = '❌ 用户名为空，请输入用户名';
-                                        details = '注册失败原因：用户名字段为空或未传递到后端';
-                                    } else if (data.message.includes('密码不能为空')) {
-                                        userMessage = '❌ 密码为空，请输入密码';
-                                        details = '注册失败原因：密码字段为空或未传递到后端';
-                                    } else if (data.message.includes('确认密码不能为空')) {
-                                        userMessage = '❌ 确认密码为空，请输入确认密码';
-                                        details = '注册失败原因：确认密码字段为空或未传递到后端';
-                                    } else if (data.message.includes('用户名长度')) {
-                                        userMessage = '❌ 用户名长度不符合要求';
-                                        details = '注册失败原因：用户名长度必须在3-50个字符之间';
-                                    } else if (data.message.includes('密码长度')) {
-                                        userMessage = '❌ 密码长度不符合要求';
-                                        details = '注册失败原因：密码长度至少需要6个字符';
-                                    } else if (data.message.includes('两次输入的密码不一致')) {
-                                        userMessage = '❌ 两次输入的密码不一致';
-                                        details = '注册失败原因：密码与确认密码不匹配';
-                                    } else {
-                                        userMessage = `❌ 请求参数错误: ${data.message}`;
-                                        details = '服务器无法理解请求的语法或参数格式不正确';
-                                    }
+                }
+            },
+            validateConfirmPassword() {
+                const confirmPassword = this.form.confirmPassword;
+                if (!confirmPassword) {
+                    this.$set(this.errors, 'confirmPassword', '确认密码不能为空');
+                } else if (confirmPassword !== this.form.password) {
+                    this.$set(this.errors, 'confirmPassword', '两次输入的密码不一致');
+                } else {
+                    this.$delete(this.errors, 'confirmPassword');
+                }
+            },
+            validateRoleId() {
+                const roleId = this.form.roleId;
+                if (!roleId) {
+                    this.$set(this.errors, 'roleId', '请选择用户角色');
+                } else {
+                    this.$delete(this.errors, 'roleId');
+                }
+            },
+            validateAll() {
+                this.validateUsername();
+                this.validatePassword();
+                this.validateConfirmPassword();
+                this.validateRoleId();
+            },
+            showMessage(text, type, details = '', technical = '') {
+                this.message = { text, type, details, technical };
+                this.showTechnicalDetails = false;
+                setTimeout(() => {
+                    this.message = { text: '', type: '', details: '', technical: '' };
+                }, 8000);
+            },
+            getDetailedErrorMessage(error) {
+                // 保存错误对象供后续使用
+                this.lastError = error;
+
+                // 构建技术详情
+                const technicalInfo = this.buildTechnicalInfo(error);
+
+                let userMessage = '';
+                let details = '';
+
+                // 1. 网络连接错误 - 前端连接后端失败
+                if (error.code === 'ECONNREFUSED' || (error.message && error.message.includes('ECONNREFUSED'))) {
+                    userMessage = '❌ 前端连接后端失败，无法连接到服务器';
+                    details = '可能原因：\n1. 后端服务器未启动\n2. 端口号配置错误\n3. 防火墙阻止了连接\n4. 服务器地址错误';
+                }
+
+                // 2. 网络超时错误
+                else if (error.code === 'ECONNABORTED' || (error.message && error.message.includes('timeout'))) {
+                    userMessage = '⏱️ 请求超时，请检查网络连接后重试';
+                    details = '请求在规定时间内未收到响应，可能是网络延迟或服务器负载过高';
+                }
+
+                // 3. 服务器响应错误
+                else if (error.response) {
+                    const status = error.response.status;
+                    const data = error.response.data;
+
+                    // 根据HTTP状态码返回具体错误
+                    switch (status) {
+                        case 400:
+                            // 检查具体的400错误类型
+                            if (data && data.message) {
+                                if (data.message.includes('用户名不能为空')) {
+                                    userMessage = '❌ 用户名为空，请输入用户名';
+                                    details = '注册失败原因：用户名字段为空或未传递到后端';
+                                } else if (data.message.includes('密码不能为空')) {
+                                    userMessage = '❌ 密码为空，请输入密码';
+                                    details = '注册失败原因：密码字段为空或未传递到后端';
+                                } else if (data.message.includes('确认密码不能为空')) {
+                                    userMessage = '❌ 确认密码为空，请输入确认密码';
+                                    details = '注册失败原因：确认密码字段为空或未传递到后端';
+                                } else if (data.message.includes('用户名长度')) {
+                                    userMessage = '❌ 用户名长度不符合要求';
+                                    details = '注册失败原因：用户名长度必须在3-50个字符之间';
+                                } else if (data.message.includes('密码长度')) {
+                                    userMessage = '❌ 密码长度不符合要求';
+                                    details = '注册失败原因：密码长度至少需要6个字符';
+                                } else if (data.message.includes('两次输入的密码不一致')) {
+                                    userMessage = '❌ 两次输入的密码不一致';
+                                    details = '注册失败原因：密码与确认密码不匹配';
                                 } else {
-                                    userMessage = '❌ 请求参数错误，请检查填写的信息';
+                                    userMessage = `❌ 请求参数错误: ${data.message}`;
                                     details = '服务器无法理解请求的语法或参数格式不正确';
                                 }
-                                break;
-                            case 401:
-                                userMessage = '🔒 未授权访问，请先登录';
-                                details = '请求需要用户认证，当前用户未登录或登录状态已过期';
-                                break;
-                            case 403:
-                                userMessage = '🚫 权限不足，无法执行此操作';
-                                details = '服务器理解请求，但拒绝执行，可能是权限不足';
-                                break;
-                            case 404:
-                                userMessage = '🔍 注册接口不存在，请检查URL';
-                                details = '可能原因：\n1. 注册API端点配置错误\n2. 后端路由配置问题\n3. 接口地址拼写错误';
-                                break;
-                            case 405:
-                                userMessage = '🚫 请求方法不被允许，服务器不支持该HTTP方法';
-                                details = '注册失败原因：\n1. 后端服务器未启动或配置错误\n2. 注册接口只支持POST方法，但收到了其他方法\n3. 服务器路由配置问题\n4. 可能是静态文件服务器，不支持API请求';
-                                break;
-                            case 409:
-                                // 重点处理用户名重复的情况
-                                if (data && data.message) {
-                                    if (data.message.includes('用户名已存在') || data.message.includes('用户名重复')) {
-                                        userMessage = '❌ 用户名已被占用，请选择其他用户名';
-                                        details = '注册失败原因：该用户名已被其他用户注册，请尝试其他用户名';
-                                    } else {
-                                        userMessage = `⚠️ 数据冲突: ${data.message}`;
-                                        details = '请求与服务器当前状态发生冲突，例如重复注册用户名';
-                                    }
+                            } else {
+                                userMessage = '❌ 请求参数错误，请检查填写的信息';
+                                details = '服务器无法理解请求的语法或参数格式不正确';
+                            }
+                            break;
+                        case 401:
+                            userMessage = '🔒 未授权访问，请先登录';
+                            details = '请求需要用户认证，当前用户未登录或登录状态已过期';
+                            break;
+                        case 403:
+                            userMessage = '🚫 权限不足，无法执行此操作';
+                            details = '服务器理解请求，但拒绝执行，可能是权限不足';
+                            break;
+                        case 404:
+                            userMessage = '🔍 注册接口不存在，请检查URL';
+                            details = '可能原因：\n1. 注册API端点配置错误\n2. 后端路由配置问题\n3. 接口地址拼写错误';
+                            break;
+                        case 405:
+                            userMessage = '🚫 请求方法不被允许，服务器不支持该HTTP方法';
+                            details = '注册失败原因：\n1. 后端服务器未启动或配置错误\n2. 注册接口只支持POST方法，但收到了其他方法\n3. 服务器路由配置问题\n4. 可能是静态文件服务器，不支持API请求';
+                            break;
+                        case 409:
+                            // 重点处理用户名重复的情况
+                            if (data && data.message) {
+                                if (data.message.includes('用户名已存在') || data.message.includes('用户名重复')) {
+                                    userMessage = '❌ 用户名已被占用，请选择其他用户名';
+                                    details = '注册失败原因：该用户名已被其他用户注册，请尝试其他用户名';
                                 } else {
-                                    userMessage = '⚠️ 数据冲突，请检查是否重复提交';
+                                    userMessage = `⚠️ 数据冲突: ${data.message}`;
                                     details = '请求与服务器当前状态发生冲突，例如重复注册用户名';
                                 }
-                                break;
-                            case 422:
-                                userMessage = data && data.message ? 
-                                    `📝 数据验证失败: ${data.message}` : 
-                                    '📝 数据验证失败，请检查表单信息';
-                                details = '请求格式正确但包含语义错误，服务器无法处理';
-                                break;
-                            case 429:
-                                userMessage = '⏳ 请求过于频繁，请稍后再试';
-                                details = '客户端请求过多，触发了服务器的速率限制';
-                                break;
-                            case 500:
-                                // 重点处理后端连接数据库错误
-                                if (data && data.message) {
-                                    if (data.message.includes('数据库') || data.message.includes('database') || data.message.includes('MySQL')) {
-                                        userMessage = '❌ 后端连接数据库失败，请稍后重试';
-                                        details = '注册失败原因：\n1. 数据库服务器未启动\n2. 数据库连接配置错误\n3. 数据库权限不足\n4. 数据库连接池耗尽';
-                                    } else if (data.message.includes('服务器内部错误')) {
-                                        userMessage = '❌ 服务器内部错误，请联系管理员';
-                                        details = '注册失败原因：服务器处理请求时发生内部错误';
-                                    } else {
-                                        userMessage = `🔧 服务器内部错误: ${data.message}`;
-                                        details = '服务器遇到意外情况，无法完成请求';
-                                    }
+                            } else {
+                                userMessage = '⚠️ 数据冲突，请检查是否重复提交';
+                                details = '请求与服务器当前状态发生冲突，例如重复注册用户名';
+                            }
+                            break;
+                        case 422:
+                            userMessage = data && data.message ?
+                                `📝 数据验证失败: ${data.message}` :
+                                '📝 数据验证失败，请检查表单信息';
+                            details = '请求格式正确但包含语义错误，服务器无法处理';
+                            break;
+                        case 429:
+                            userMessage = '⏳ 请求过于频繁，请稍后再试';
+                            details = '客户端请求过多，触发了服务器的速率限制';
+                            break;
+                        case 500:
+                            // 重点处理后端连接数据库错误
+                            if (data && data.message) {
+                                if (data.message.includes('数据库') || data.message.includes('database') || data.message.includes('MySQL')) {
+                                    userMessage = '❌ 后端连接数据库失败，请稍后重试';
+                                    details = '注册失败原因：\n1. 数据库服务器未启动\n2. 数据库连接配置错误\n3. 数据库权限不足\n4. 数据库连接池耗尽';
+                                } else if (data.message.includes('服务器内部错误')) {
+                                    userMessage = '❌ 服务器内部错误，请联系管理员';
+                                    details = '注册失败原因：服务器处理请求时发生内部错误';
                                 } else {
-                                    userMessage = '🔧 服务器内部错误，请联系管理员';
+                                    userMessage = `🔧 服务器内部错误: ${data.message}`;
                                     details = '服务器遇到意外情况，无法完成请求';
                                 }
-                                break;
-                            case 502:
-                                userMessage = '🌐 网关错误，服务器暂时不可用';
-                                details = '网关或代理服务器从上游服务器接收到无效响应';
-                                break;
-                            case 503:
-                                userMessage = '🔧 服务器维护中，请稍后再试';
-                                details = '服务器暂时无法处理请求，通常是临时状态';
-                                break;
-                            case 504:
-                                userMessage = '⏱️ 服务器响应超时，请稍后重试';
-                                details = '网关或代理服务器未能及时从上游服务器获得响应';
-                                break;
-                            default:
-                                userMessage = data && data.message ? 
-                                    `❌ 请求失败 (${status}): ${data.message}` : 
-                                    `❌ 请求失败 (状态码: ${status})`;
-                                details = `HTTP ${status} 错误，详情请查看技术信息`;
-                        }
+                            } else {
+                                userMessage = '🔧 服务器内部错误，请联系管理员';
+                                details = '服务器遇到意外情况，无法完成请求';
+                            }
+                            break;
+                        case 502:
+                            userMessage = '🌐 网关错误，服务器暂时不可用';
+                            details = '网关或代理服务器从上游服务器接收到无效响应';
+                            break;
+                        case 503:
+                            userMessage = '🔧 服务器维护中，请稍后再试';
+                            details = '服务器暂时无法处理请求，通常是临时状态';
+                            break;
+                        case 504:
+                            userMessage = '⏱️ 服务器响应超时，请稍后重试';
+                            details = '网关或代理服务器未能及时从上游服务器获得响应';
+                            break;
+                        default:
+                            userMessage = data && data.message ?
+                                `❌ 请求失败 (${status}): ${data.message}` :
+                                `❌ 请求失败 (状态码: ${status})`;
+                            details = `HTTP ${status} 错误，详情请查看技术信息`;
                     }
-                    
-                    // 4. 网络错误（无响应）- 前端发送请求但后端无响应
-                    else if (error.request) {
-                        userMessage = '🌐 前端请求发送失败，网络连接异常';
-                        details = '注册失败原因：\n1. 网络连接中断\n2. 后端服务器无响应\n3. 请求被网络防火墙阻止\n4. DNS解析失败\n5. 代理服务器配置错误';
-                    }
-                    
-                    // 5. 请求配置错误
-                    else if (error.config) {
-                        userMessage = '⚙️ 请求配置错误，请刷新页面后重试';
-                        details = '请求配置有误，可能是前端代码问题';
-                    }
-                    
-                    // 6. 其他未知错误
-                    else if (error.message) {
-                        userMessage = `❌ 操作失败: ${error.message}`;
-                        details = '发生了未分类的错误，请查看技术信息';
-                    }
-                    
-                    // 7. 兜底错误信息
-                    else {
-                        userMessage = '❌ 发生未知错误，请刷新页面后重试';
-                        details = '无法识别的错误类型，请联系技术支持';
-                    }
-                    
-                    // 显示详细错误信息
-                    this.showMessage(userMessage, 'error', details, technicalInfo);
-                    
-                    return userMessage;
-                },
-                buildTechnicalInfo(error) {
-                    // 构建技术详情信息
-                    const info = {
-                        timestamp: new Date().toISOString(),
-                        url: window.location.href,
-                        userAgent: navigator.userAgent.substring(0, 100) + '...',
-                        error: {}
+                }
+
+                // 4. 网络错误（无响应）- 前端发送请求但后端无响应
+                else if (error.request) {
+                    userMessage = '🌐 前端请求发送失败，网络连接异常';
+                    details = '注册失败原因：\n1. 网络连接中断\n2. 后端服务器无响应\n3. 请求被网络防火墙阻止\n4. DNS解析失败\n5. 代理服务器配置错误';
+                }
+
+                // 5. 请求配置错误
+                else if (error.config) {
+                    userMessage = '⚙️ 请求配置错误，请刷新页面后重试';
+                    details = '请求配置有误，可能是前端代码问题';
+                }
+
+                // 6. 其他未知错误
+                else if (error.message) {
+                    userMessage = `❌ 操作失败: ${error.message}`;
+                    details = '发生了未分类的错误，请查看技术信息';
+                }
+
+                // 7. 兜底错误信息
+                else {
+                    userMessage = '❌ 发生未知错误，请刷新页面后重试';
+                    details = '无法识别的错误类型，请联系技术支持';
+                }
+
+                // 显示详细错误信息
+                this.showMessage(userMessage, 'error', details, technicalInfo);
+
+                return userMessage;
+            },
+            buildTechnicalInfo(error) {
+                // 构建技术详情信息
+                const info = {
+                    timestamp: new Date().toISOString(),
+                    url: window.location.href,
+                    userAgent: navigator.userAgent.substring(0, 100) + '...',
+                    error: {}
+                };
+
+                if (error.response) {
+                    info.error = {
+                        type: '服务器响应错误',
+                        status: error.response.status,
+                        statusText: error.response.statusText,
+                        url: error.response.config?.url || '未知',
+                        method: error.response.config?.method?.toUpperCase() || '未知',
+                        headers: error.response.headers,
+                        data: error.response.data
                     };
-                    
-                    if (error.response) {
-                        info.error = {
-                            type: '服务器响应错误',
-                            status: error.response.status,
-                            statusText: error.response.statusText,
-                            url: error.response.config?.url || '未知',
-                            method: error.response.config?.method?.toUpperCase() || '未知',
-                            headers: error.response.headers,
-                            data: error.response.data
-                        };
-                    } else if (error.request) {
-                        info.error = {
-                            type: '网络请求错误',
-                            code: error.code,
-                            message: error.message,
-                            timeout: error.config?.timeout || '未设置',
-                            url: error.config?.url || '未知',
-                            method: error.config?.method?.toUpperCase() || '未知'
-                        };
-                    } else {
-                        info.error = {
-                            type: '其他错误',
-                            message: error.message,
-                            stack: error.stack?.substring(0, 500) || '无堆栈信息'
-                        };
-                    }
-                    
-                    return JSON.stringify(info, null, 2);
-                },
-                async copyErrorInfo() {
-                    if (this.copying) return;
-                    
-                    this.copying = true;
-                    try {
-                        const errorInfo = `
+                } else if (error.request) {
+                    info.error = {
+                        type: '网络请求错误',
+                        code: error.code,
+                        message: error.message,
+                        timeout: error.config?.timeout || '未设置',
+                        url: error.config?.url || '未知',
+                        method: error.config?.method?.toUpperCase() || '未知'
+                    };
+                } else {
+                    info.error = {
+                        type: '其他错误',
+                        message: error.message,
+                        stack: error.stack?.substring(0, 500) || '无堆栈信息'
+                    };
+                }
+
+                return JSON.stringify(info, null, 2);
+            },
+            async copyErrorInfo() {
+                if (this.copying) return;
+
+                this.copying = true;
+                try {
+                    const errorInfo = `
 论坛注册错误报告
 时间: ${new Date().toLocaleString()}
 错误信息: ${this.message.text}
@@ -1191,168 +1108,168 @@
 技术信息:
 ${this.message.technical}
                         `.trim();
-                        
-                        if (navigator.clipboard) {
-                            await navigator.clipboard.writeText(errorInfo);
-                        } else {
-                            // 兼容旧浏览器
-                            const textArea = document.createElement('textarea');
-                            textArea.value = errorInfo;
-                            textArea.style.position = 'fixed';
-                            textArea.style.opacity = '0';
-                            document.body.appendChild(textArea);
-                            textArea.select();
-                            document.execCommand('copy');
-                            document.body.removeChild(textArea);
+
+                    if (navigator.clipboard) {
+                        await navigator.clipboard.writeText(errorInfo);
+                    } else {
+                        // 兼容旧浏览器
+                        const textArea = document.createElement('textarea');
+                        textArea.value = errorInfo;
+                        textArea.style.position = 'fixed';
+                        textArea.style.opacity = '0';
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                    }
+
+                    // 短暂显示复制成功
+                    const originalText = this.message.text;
+                    this.message.text = '✅ 错误信息已复制到剪贴板';
+                    setTimeout(() => {
+                        if (this.message.text === '✅ 错误信息已复制到剪贴板') {
+                            this.message.text = originalText;
                         }
-                        
-                        // 短暂显示复制成功
-                        const originalText = this.message.text;
-                        this.message.text = '✅ 错误信息已复制到剪贴板';
-                        setTimeout(() => {
-                            if (this.message.text === '✅ 错误信息已复制到剪贴板') {
-                                this.message.text = originalText;
+                    }, 2000);
+
+                } catch (err) {
+                    console.error('复制失败:', err);
+                    alert('复制失败，请手动复制错误信息');
+                } finally {
+                    this.copying = false;
+                }
+            },
+            testError(type) {
+                // 错误测试方法，用于演示各种错误处理情况
+                let mockError;
+
+                switch (type) {
+                    case 'network':
+                        // 模拟网络连接错误
+                        mockError = {
+                            code: 'ECONNREFUSED',
+                            message: 'connect ECONNREFUSED 127.0.0.1:8091'
+                        };
+                        this.getDetailedErrorMessage(mockError);
+                        break;
+
+                    case 'username':
+                        // 模拟用户名重复错误
+                        mockError = {
+                            response: {
+                                status: 409,
+                                data: {
+                                    code: 409,
+                                    message: '用户名已存在，请选择其他用户名'
+                                }
                             }
-                        }, 2000);
-                        
-                    } catch (err) {
-                        console.error('复制失败:', err);
-                        alert('复制失败，请手动复制错误信息');
-                    } finally {
-                        this.copying = false;
-                    }
-                },
-                testError(type) {
-                    // 错误测试方法，用于演示各种错误处理情况
-                    let mockError;
-                    
-                    switch (type) {
-                        case 'network':
-                            // 模拟网络连接错误
-                            mockError = {
-                                code: 'ECONNREFUSED',
-                                message: 'connect ECONNREFUSED 127.0.0.1:8091'
-                            };
-                            this.getDetailedErrorMessage(mockError);
-                            break;
-                            
-                        case 'username':
-                            // 模拟用户名重复错误
-                            mockError = {
-                                response: {
-                                    status: 409,
-                                    data: {
-                                        code: 409,
-                                        message: '用户名已存在，请选择其他用户名'
-                                    }
+                        };
+                        this.getDetailedErrorMessage(mockError);
+                        break;
+
+                    case 'database':
+                        // 模拟数据库连接错误
+                        mockError = {
+                            response: {
+                                status: 500,
+                                data: {
+                                    code: 500,
+                                    message: '数据库连接失败'
                                 }
-                            };
-                            this.getDetailedErrorMessage(mockError);
-                            break;
-                            
-                        case 'database':
-                            // 模拟数据库连接错误
-                            mockError = {
-                                response: {
-                                    status: 500,
-                                    data: {
-                                        code: 500,
-                                        message: '数据库连接失败'
-                                    }
+                            }
+                        };
+                        this.getDetailedErrorMessage(mockError);
+                        break;
+
+                    case 'validation':
+                        // 模拟表单验证错误
+                        mockError = {
+                            response: {
+                                status: 400,
+                                data: {
+                                    code: 400,
+                                    message: '密码不能为空'
                                 }
-                            };
-                            this.getDetailedErrorMessage(mockError);
-                            break;
-                            
-                        case 'validation':
-                            // 模拟表单验证错误
-                            mockError = {
-                                response: {
-                                    status: 400,
-                                    data: {
-                                        code: 400,
-                                        message: '密码不能为空'
-                                    }
-                                }
-                            };
-                            this.getDetailedErrorMessage(mockError);
-                            break;
-                            
-                        default:
-                            this.showMessage('❓ 未知的错误类型测试', 'error');
-                    }
-                },
-                async register() {
-                    this.validateAll();
-                    
-                    if (!this.isFormValid) {
-                        this.showMessage('❌ 表单验证失败，请检查所有必填项', 'error', 
-                            '注册失败原因：表单信息不完整或格式不正确', 
-                            JSON.stringify({
-                                errors: this.errors,
-                                form: this.form,
-                                timestamp: new Date().toISOString()
-                            }, null, 2));
-                        return;
-                    }
-                    
-                    this.loading = true;
-                    
-                    try {
-                        // 添加请求前的日志
-                        console.log('🚀 开始注册请求:', {
-                            username: this.form.username,
-                            roleId: this.form.roleId,
+                            }
+                        };
+                        this.getDetailedErrorMessage(mockError);
+                        break;
+
+                    default:
+                        this.showMessage('❓ 未知的错误类型测试', 'error');
+                }
+            },
+            async register() {
+                this.validateAll();
+
+                if (!this.isFormValid) {
+                    this.showMessage('❌ 表单验证失败，请检查所有必填项', 'error',
+                        '注册失败原因：表单信息不完整或格式不正确',
+                        JSON.stringify({
+                            errors: this.errors,
+                            form: this.form,
                             timestamp: new Date().toISOString()
-                        });
-                        
-                        const response = await axios.post('http://localhost:8091/user/register', {
-                            username: this.form.username,
-                            password: this.form.password,
-                            confirmPassword: this.form.confirmPassword,
-                            roleId: parseInt(this.form.roleId)
-                        });
-                        
-                        console.log('📥 收到服务器响应:', response.data);
-                        
-                        if (response.data.code === 200) {
-                            this.showMessage('🎉 注册成功！即将跳转到主页...', 'success');
-                            
-                            // 保存用户信息到localStorage
-                            localStorage.setItem('username', this.form.username);
-                            localStorage.setItem('userRole', this.form.roleId);
-                            
-                            setTimeout(() => {
-                                window.location.href = `home.html?username=${encodeURIComponent(this.form.username)}`;
-                            }, 2000);
-                        } else {
-                            // 处理后端返回的业务错误
-                            const errorMessage = response.data.message || '注册失败';
-                            let details = '后端业务逻辑验证失败';
-                            
-                            // 根据具体的错误消息提供更详细的说明
-                            if (errorMessage.includes('用户名已存在')) {
-                                details = '注册失败原因：该用户名已被其他用户使用，请选择一个新的用户名';
-                            } else if (errorMessage.includes('密码')) {
-                                details = '注册失败原因：密码不符合要求，请检查密码格式';
-                            } else if (errorMessage.includes('用户名')) {
-                                details = '注册失败原因：用户名不符合要求，请检查用户名格式';
-                            } else if (errorMessage.includes('角色')) {
-                                details = '注册失败原因：用户角色选择有误或角色不存在';
-                            }
-                            
-                            this.showMessage(`❌ ${errorMessage}`, 'error', details, JSON.stringify(response.data, null, 2));
+                        }, null, 2));
+                    return;
+                }
+
+                this.loading = true;
+
+                try {
+                    // 添加请求前的日志
+                    console.log('🚀 开始注册请求:', {
+                        username: this.form.username,
+                        roleId: this.form.roleId,
+                        timestamp: new Date().toISOString()
+                    });
+
+                    const response = await axios.post('http://localhost:8091/user/register', {
+                        username: this.form.username,
+                        password: this.form.password,
+                        confirmPassword: this.form.confirmPassword,
+                        roleId: parseInt(this.form.roleId)
+                    });
+
+                    console.log('📥 收到服务器响应:', response.data);
+
+                    if (response.data.code === 200) {
+                        this.showMessage('🎉 注册成功！即将跳转到主页...', 'success');
+
+                        // 保存用户信息到localStorage
+                        localStorage.setItem('username', this.form.username);
+                        localStorage.setItem('userRole', this.form.roleId);
+
+                        setTimeout(() => {
+                            window.location.href = `home.html?username=${encodeURIComponent(this.form.username)}`;
+                        }, 2000);
+                    } else {
+                        // 处理后端返回的业务错误
+                        const errorMessage = response.data.message || '注册失败';
+                        let details = '后端业务逻辑验证失败';
+
+                        // 根据具体的错误消息提供更详细的说明
+                        if (errorMessage.includes('用户名已存在')) {
+                            details = '注册失败原因：该用户名已被其他用户使用，请选择一个新的用户名';
+                        } else if (errorMessage.includes('密码')) {
+                            details = '注册失败原因：密码不符合要求，请检查密码格式';
+                        } else if (errorMessage.includes('用户名')) {
+                            details = '注册失败原因：用户名不符合要求，请检查用户名格式';
+                        } else if (errorMessage.includes('角色')) {
+                            details = '注册失败原因：用户角色选择有误或角色不存在';
                         }
-                    } catch (error) {
-                        console.error('❌ 注册请求失败:', error);
-                        // getDetailedErrorMessage 现在会自动调用 showMessage
-                        this.getDetailedErrorMessage(error);
-                    } finally {
-                        this.loading = false;
+
+                        this.showMessage(`❌ ${errorMessage}`, 'error', details, JSON.stringify(response.data, null, 2));
                     }
+                } catch (error) {
+                    console.error('❌ 注册请求失败:', error);
+                    // getDetailedErrorMessage 现在会自动调用 showMessage
+                    this.getDetailedErrorMessage(error);
+                } finally {
+                    this.loading = false;
                 }
             }
-        });
-    </script>
+        }
+    });
+</script>
 </body>
 </html>

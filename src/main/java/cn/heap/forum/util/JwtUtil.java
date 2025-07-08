@@ -13,13 +13,13 @@ import java.util.Map;
 
 @Component
 public class JwtUtil {
-    
+
     // JWT密钥
     private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    
+
     // 令牌有效期（24小时）
     private static final long EXPIRATION_TIME = 24 * 60 * 60 * 1000;
-    
+
     /**
      * 生成JWT令牌
      */
@@ -28,7 +28,7 @@ public class JwtUtil {
         claims.put("userId", userId);
         claims.put("username", username);
         claims.put("roleId", roleId);
-        
+
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(username)
@@ -37,7 +37,7 @@ public class JwtUtil {
                 .signWith(SECRET_KEY)
                 .compact();
     }
-    
+
     /**
      * 解析JWT令牌
      */
@@ -52,7 +52,7 @@ public class JwtUtil {
             return null;
         }
     }
-    
+
     /**
      * 验证令牌是否有效
      */
@@ -64,7 +64,7 @@ public class JwtUtil {
             return false;
         }
     }
-    
+
     /**
      * 从令牌中获取用户ID
      */
@@ -72,7 +72,7 @@ public class JwtUtil {
         Claims claims = parseToken(token);
         return claims != null ? (Integer) claims.get("userId") : null;
     }
-    
+
     /**
      * 从令牌中获取用户名
      */
@@ -80,7 +80,7 @@ public class JwtUtil {
         Claims claims = parseToken(token);
         return claims != null ? (String) claims.get("username") : null;
     }
-    
+
     /**
      * 从令牌中获取角色ID
      */
