@@ -3,6 +3,393 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>论坛 </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#6B7280',
+                        accent: '#36CFC9',
+                        dark: '#1F2937',
+                        light: '#F9FAFB',
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            .card-hover {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            }
+            .nav-active {
+               /* border-bottom: 3px solid theme('colors.primary');
+                color: theme('colors.primary');
+                font-weight: 600;*/
+            }
+            .text-balance {
+                /*text-wrap: balance;*/
+            }
+
+    </style>
+</head>
+
+<body class="font-inter bg-gray-50 min-h-screen">
+<!-- 导航栏 -->
+<header class="bg-white sticky top-0 z-50 shadow-sm">
+    <div class="container mx-auto px-4 py-4">
+        <!-- 网站标题 -->
+        <div class="text-center mb-4">
+            <h1 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-dark">
+                <i class="fa fa-comments-o mr-2 text-primary"></i>ShareForum
+            </h1>
+        </div>
+
+        <!-- 板块切换导航 -->
+        <nav class="flex justify-center space-x-8 mb-2">
+            <button id="daily-tab" class="nav-active py-2 px-1 text-lg transition-all duration-300">
+                <i class="fa fa-coffee mr-1"></i>日常
+            </button>
+            <button id="recommend-tab" class="py-2 px-1 text-lg text-gray-600 hover:text-primary transition-all duration-300">
+                <i class="fa fa-star-o mr-1"></i>推荐
+            </button>
+        </nav>
+    </div>
+</header>
+
+<!-- 主内容区 -->
+<main class="container mx-auto px-4 py-8">
+    <!-- 日常板块 -->
+    <section id="daily-section" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- 这里的帖子数据将通过 JavaScript 动态生成 -->
+        </div>
+    </section>
+
+    <!-- 推荐板块 (默认隐藏) -->
+    <section id="recommend-section" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- 这里的帖子数据将通过 JavaScript 动态生成 -->
+        </div>
+    </section>
+
+    <!-- 帖子详情模态框 (默认隐藏) -->
+    <div id="post-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl w-full max-w-3xl max-h-[90vh] overflow-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 id="modal-title" class="text-2xl font-bold text-dark"></h2>
+                    <button id="close-modal" class="text-gray-500 hover:text-gray-700 text-xl">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="flex items-center mb-6">
+                    <img id="modal-author-avatar" src="" alt="用户头像" class="w-12 h-12 rounded-full">
+                    <div class="ml-3">
+                        <p id="modal-author-name" class="font-medium text-dark"></p>
+                        <p id="modal-create-time" class="text-sm text-gray-500"></p>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <p id="modal-content" class="text-gray-700 leading-relaxed"></p>
+                </div>
+
+                <div class="mb-6">
+                    <img id="modal-img" src="" alt="帖子图片" class="rounded-lg max-w-full">
+                </div>
+
+                <div class="flex justify-between items-center text-sm text-gray-500">
+            <span id="modal-plate" class="flex items-center">
+              <i class="fa fa-folder-o mr-1"></i>
+              <span></span>
+            </span>
+                    <div class="flex space-x-4">
+              <span class="flex items-center">
+                <i class="fa fa-heart-o mr-1"></i>
+                <span id="modal-likes">0</span>
+              </span>
+                        <span class="flex items-center">
+                <i class="fa fa-comment-o mr-1"></i>
+                <span id="modal-comments">0</span>
+              </span>
+                        <span class="flex items-center">
+                <i class="fa fa-eye mr-1"></i>
+                <span id="modal-views">0</span>
+              </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- 页脚 -->
+<footer class="bg-white border-t border-gray-200 py-6">
+    <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+        <p>© 2025 ShareForum. 保留所有权利.</p>
+    </div>
+</footer>
+
+<script>
+    // 模拟后端数据
+    const mockData = {
+        plates: [
+            { plateId: 1, name: "日常讨论", description: "分享日常生活的点滴" },
+            { plateId: 2, name: "技术交流", description: "探讨技术问题和经验" },
+            { plateId: 3, name: "资源分享", description: "分享各类实用资源" },
+            { plateId: 4, name: "活动公告", description: "论坛活动和公告" },
+            { plateId: 5, name: "休闲娱乐", description: "轻松娱乐内容" }
+        ],
+        posts: [
+            {
+                postId: 1,
+                content: "今天尝试了新的咖啡配方，味道真的很赞！分享给大家~周末在家研究了一款新的手冲咖啡配方，用了哥伦比亚的豆子，口感很顺滑，带点水果的酸香...",
+                authorId: 1,
+                createTime: "2025-07-05T14:30:00",
+                postImgpath: "https://picsum.photos/seed/post1/800/600",
+                plateId: 1
+            },
+            {
+                postId: 2,
+                content: "分享今日份的跑步记录，坚持锻炼真的很有成就感。今天完成了5公里慢跑，配速比上周提高了30秒，坚持一个月果然有效果，继续加油！...",
+                authorId: 2,
+                createTime: "2025-07-06T18:30:00",
+                postImgpath: "https://picsum.photos/seed/post2/800/600",
+                plateId: 1
+            },
+            {
+                postId: 3,
+                content: "自制的草莓蛋糕，颜值和味道都在线~周末在家尝试做了草莓蛋糕，用了新鲜的草莓和动物奶油，口感很清爽，一点都不腻...",
+                authorId: 3,
+                createTime: "2025-07-03T10:15:00",
+                postImgpath: "https://picsum.photos/seed/post3/800/600",
+                plateId: 5
+            },
+            {
+                postId: 4,
+                content: "分享一本最近在读的好书，推荐给大家。《人类简史》真的是一本打开眼界的书，作者从全新的视角解读了人类发展的历程...",
+                authorId: 4,
+                createTime: "2025-07-02T16:45:00",
+                postImgpath: "https://picsum.photos/seed/post4/800/600",
+                plateId: 2
+            },
+            {
+                postId: 5,
+                content: "城市傍晚的天空，随手一拍都是美景。今天下班路上看到的天空，粉紫色的晚霞太美了，忍不住停下来拍了几张...",
+                authorId: 5,
+                createTime: "2025-07-01T19:20:00",
+                postImgpath: "https://picsum.photos/seed/post5/800/600",
+                plateId: 5
+            },
+            {
+                postId: 6,
+                content: "摄影技巧分享：如何拍出绝美的风光照。总结了几点风光摄影的小技巧，包括构图、光线选择和后期处理，新手也能快速上手...",
+                authorId: 6,
+                createTime: "2025-06-28T09:10:00",
+                postImgpath: "https://picsum.photos/seed/rec1/800/600",
+                plateId: 2
+            },
+            {
+                postId: 7,
+                content: "隐藏的旅行宝藏地，人少景美还免费。推荐几个不太为人知的旅行地点，避开人群，享受宁静的美景，附详细攻略...",
+                authorId: 7,
+                createTime: "2025-06-25T11:30:00",
+                postImgpath: "https://picsum.photos/seed/rec2/800/600",
+                plateId: 5
+            },
+            {
+                postId: 8,
+                content: "推荐一款超好用的代码编辑器，效率提升300%！最近尝试了VS Code的新插件，代码提示和自动补全功能太强大了，开发效率大幅提升...",
+                authorId: 8,
+                createTime: "2025-06-22T15:45:00",
+                postImgpath: "https://picsum.photos/seed/rec3/800/600",
+                plateId: 2
+            },
+            {
+                postId: 9,
+                content: "分享一个免费的学习资源网站，涵盖各种领域的教程和资料。这个网站上的学习资源非常丰富，而且全部免费，特别适合自学...",
+                authorId: 9,
+                createTime: "2025-06-20T13:20:00",
+                postImgpath: "https://picsum.photos/seed/rec4/800/600",
+                plateId: 3
+            },
+            {
+                postId: 10,
+                content: "论坛将在本周六举办线上技术交流活动，欢迎各位参加！本次活动将邀请行业专家分享前沿技术，还有互动问答环节，奖品丰厚...",
+                authorId: 10,
+                createTime: "2025-06-18T10:00:00",
+                postImgpath: "https://picsum.photos/seed/rec5/800/600",
+                plateId: 4
+            }
+        ],
+        users: [
+            { userId: 1, username: "林小夏", avatar: "https://picsum.photos/seed/user1/100/100" },
+            { userId: 2, username: "王大力", avatar: "https://picsum.photos/seed/user2/100/100" },
+            { userId: 3, username: "张小花", avatar: "https://picsum.photos/seed/user3/100/100" },
+            { userId: 4, username: "刘阳阳", avatar: "https://picsum.photos/seed/user4/100/100" },
+            { userId: 5, username: "陈明", avatar: "https://picsum.photos/seed/user5/100/100" },
+            { userId: 6, username: "摄影爱好者", avatar: "https://picsum.photos/seed/recuser1/100/100" },
+            { userId: 7, username: "旅行博主", avatar: "https://picsum.photos/seed/recuser2/100/100" },
+            { userId: 8, username: "技术达人", avatar: "https://picsum.photos/seed/recuser3/100/100" },
+            { userId: 9, username: "学习小助手", avatar: "https://picsum.photos/seed/recuser4/100/100" },
+            { userId: 10, username: "论坛管理员", avatar: "https://picsum.photos/seed/recuser5/100/100" }
+        ]
+    };
+
+    // 工具函数：格式化日期
+    function formatDate(localDateTime) {
+        const date = new Date(localDateTime);
+        return date.toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    // 工具函数：获取用户信息
+    function getUser(userId) {
+        return mockData.users.find(user => user.userId === userId) || {
+            username: "未知用户",
+            avatar: "https://picsum.photos/seed/unknown/100/100"
+        };
+    }
+
+    // 工具函数：获取板块信息
+    function getPlate(plateId) {
+        return mockData.plates.find(plate => plate.plateId === plateId) || {
+            name: "未知板块",
+            description: ""
+        };
+    }
+
+    // 渲染帖子列表
+    function renderPosts(sectionId, posts) {
+        const section = document.getElementById(sectionId);
+        const grid = section.querySelector('.grid');
+        grid.innerHTML = '';
+
+        posts.forEach(post => {
+            const user = getUser(post.authorId);
+            const plate = getPlate(post.plateId);
+
+            const postElement = document.createElement('article');
+            postElement.className = 'bg-white rounded-xl overflow-hidden card-shadow card-hover';
+            postElement.innerHTML = `
+          <div class="relative h-48 bg-cover bg-center" style="background-image: url('${post.postImgpath}')">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="absolute bottom-4 left-4 flex items-center">
+              <img src="${user.avatar}" alt="${user.username}的头像" class="w-10 h-10 rounded-full border-2 border-white">
+              <div class="ml-3 text-white">
+                <p class="font-medium">${user.username}</p>
+                <p class="text-sm opacity-90">${formatDate(post.createTime)}</p>
+              </div>
+            </div>
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold text-lg mb-2 line-clamp-2">${post.content.substring(0, 30)}...</h3>
+            <p class="text-gray-600 text-sm line-clamp-2 mb-3">${post.content.substring(30, 60)}...</p>
+            <div class="flex justify-between text-gray-500 text-sm">
+              <span><i class="fa fa-folder-o mr-1"></i>${plate.name}</span>
+              <div class="flex space-x-3">
+                <span><i class="fa fa-heart-o mr-1"></i>${Math.floor(Math.random() * 100)}</span>
+                <span><i class="fa fa-comment-o mr-1"></i>${Math.floor(Math.random() * 30)}</span>
+                <span><i class="fa fa-eye mr-1"></i>${Math.floor(Math.random() * 500)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+
+            // 添加点击事件，显示帖子详情
+            postElement.addEventListener('click', () => {
+                showPostDetails(post);
+            });
+
+            grid.appendChild(postElement);
+        });
+    }
+
+    // 显示帖子详情
+    function showPostDetails(post) {
+        const user = getUser(post.authorId);
+        const plate = getPlate(post.plateId);
+
+        document.getElementById('modal-title').textContent = post.content.substring(0, 30) + '...';
+        document.getElementById('modal-author-avatar').src = user.avatar;
+        document.getElementById('modal-author-name').textContent = user.username;
+        document.getElementById('modal-create-time').textContent = formatDate(post.createTime);
+        document.getElementById('modal-content').textContent = post.content;
+        document.getElementById('modal-img').src = post.postImgpath;
+        document.getElementById('modal-img').alt = post.content.substring(0, 10) + '...';
+        document.getElementById('modal-plate').querySelector('span').textContent = plate.name;
+        document.getElementById('modal-likes').textContent = Math.floor(Math.random() * 100);
+        document.getElementById('modal-comments').textContent = Math.floor(Math.random() * 30);
+        document.getElementById('modal-views').textContent = Math.floor(Math.random() * 500);
+
+        document.getElementById('post-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // 防止背景滚动
+    }
+
+    // 关闭帖子详情
+    document.getElementById('close-modal').addEventListener('click', () => {
+        document.getElementById('post-modal').classList.add('hidden');
+        document.body.style.overflow = 'auto'; // 恢复背景滚动
+    });
+
+    // 板块切换功能
+    document.getElementById('daily-tab').addEventListener('click', () => {
+        document.getElementById('daily-tab').classList.add('nav-active');
+        document.getElementById('recommend-tab').classList.remove('nav-active');
+        document.getElementById('daily-section').classList.remove('hidden');
+        document.getElementById('recommend-section').classList.add('hidden');
+    });
+
+    document.getElementById('recommend-tab').addEventListener('click', () => {
+        document.getElementById('recommend-tab').classList.add('nav-active');
+        document.getElementById('daily-tab').classList.remove('nav-active');
+        document.getElementById('recommend-section').classList.remove('hidden');
+        document.getElementById('daily-section').classList.add('hidden');
+    });
+
+    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        // 日常板块显示前5个帖子
+        renderPosts('daily-section', mockData.posts.slice(0, 5));
+
+        // 推荐板块显示后5个帖子
+        renderPosts('recommend-section', mockData.posts.slice(5, 10));
+    });
+</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>论坛注册 - Forum Online</title>
     <style>
         * {
