@@ -26,4 +26,9 @@ public class PostServiceImpl implements PostService {
     public void add(PostDTO postDTO) {
         postMapper.add(postDTO);
     }
+
+    @Override
+    public void delete(int id) {
+        postMapper.delete(id);
+    }
 }

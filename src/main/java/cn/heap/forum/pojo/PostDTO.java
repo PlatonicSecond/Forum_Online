@@ -18,15 +18,15 @@ public class PostDTO {
     @TableField("create_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT")
     private LocalDateTime createTime;
-    private String imgPath;
+    private String imgPath;  // 存储图片的URL路径
     private Integer plateId;
     private Integer viewCount;
 
-    // 添加无参构造方法（Jackson 反序列化需要）
+    // 无参构造方法（Jackson 反序列化需要）
     public PostDTO() {
     }
 
-    // 可选：添加带 @JsonCreator 的构造方法（显式指定反序列化方式）
+    // 带参数的构造方法（显式指定反序列化方式）
     @JsonCreator
     public PostDTO(
             @JsonProperty("title") @NonNull String title,
@@ -43,4 +43,15 @@ public class PostDTO {
         this.plateId = plateId;
         this.viewCount = viewCount;
     }
+
+    // 获取图片路径
+    public String getImgPath() {
+        return imgPath;
+    }
+
+    // 设置图片路径
+    public void setImgPath(String imgPath) {
+        this.imgPath = imgPath;
+    }
 }
+

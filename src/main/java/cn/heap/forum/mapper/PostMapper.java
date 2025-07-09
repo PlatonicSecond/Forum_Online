@@ -3,6 +3,7 @@ package cn.heap.forum.mapper;
 import cn.heap.forum.pojo.Post;
 import cn.heap.forum.pojo.PostDTO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -12,5 +13,6 @@ public interface PostMapper extends BaseMapper<Post> {
             "values(#{title},#{content},#{authorId},#{plateId},#{createTime},#{imgPath})")
     void add(PostDTO postDTO);
 
-
+    @Delete("delete from post where post_id=#{id}")
+    void delete(int id);
 }

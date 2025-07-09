@@ -35,3 +35,9 @@ logging:
     com.baomidou.mybatisplus: debug
   pattern:
     console: "[%d{yyyy-MM-dd HH:mm:ss}] [%thread] %-5level %logger{36} - %msg%n"
+
+pagehelper:
+  helperDialect: mysql  # 数据库类型（mysql/oracle/pgsql等）
+  reasonable: true      # 合理分页（默认false）
+  supportMethodsArguments: true  # 支持方法入参
+  params: count=countSql  # 分页参数
