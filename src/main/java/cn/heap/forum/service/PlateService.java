@@ -12,5 +12,5 @@ public interface PlateService {
 
     List<Post> authorsearch(int userId);
 
-    List<Post> commentsearch(int commentId, int authorId);
+    List<Post> commentsearch(int authorId);
 }

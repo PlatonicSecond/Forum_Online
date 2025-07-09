@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> selectAll(Integer id) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("userId", id);
+        queryWrapper.eq("user_id", id);
         return userMapper.selectList(queryWrapper);
     }
 
@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
         user.setRoleId(registerRequest.getRoleId() != null ? registerRequest.getRoleId() : 1); // 默认角色ID为1
         user.setRegisterTime(LocalDateTime.now());
 
-        System.out.println("✅ 用户对象创建完成: " + user.getUsername() + ", roleId: " + user.getRoleId());
+        System.out.println("✅ 用户对象创建完成: " + user.getUsername() + ", role_id: " + user.getRoleId());
 
         // 5. 保存到数据库
         try {

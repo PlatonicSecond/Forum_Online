@@ -51,7 +51,7 @@ public class PostController {
             String fileName = UUID.randomUUID().toString() + ".jpg";
 
             try {
-                file.transferTo(new File("src/main/resources/static/imgs",fileName)); // 保存图片
+                file.transferTo(new File("src/main/resources/static/images",fileName)); // 保存图片
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -62,7 +62,7 @@ public class PostController {
             post.setViewCount(0);
             post.setCreateTime(LocalDateTime.now());
 
-            String imageUrl = "/img/" + fileName;
+            String imageUrl = "/images/png_for_post/" + fileName;
             post.setImgPath(imageUrl);
 
             postService.add(post);

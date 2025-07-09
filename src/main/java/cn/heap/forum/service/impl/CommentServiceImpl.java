@@ -78,6 +78,8 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public Comment getCommentById(Integer id) {
         try {
+            QueryWrapper queryWrapper = new QueryWrapper();
+            queryWrapper.eq("author_id", id);
             return commentMapper.selectById(id);
         } catch (Exception e) {
             logger.error("根据ID查询评论时出现异常，评论ID: {}", id, e);

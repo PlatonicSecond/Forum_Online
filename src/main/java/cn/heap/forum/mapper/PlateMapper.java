@@ -20,6 +20,6 @@ public interface PlateMapper extends BaseMapper<Plate> {
     @Select("SELECT p.* " +
             "FROM post p " +
             "JOIN comment c ON p.post_id = c.post_id " +
-            "WHERE c.comment_id = #{commentId} and c.user_id = #{authorId}")
-    List<Post> commentsearch(int commentId,int authorId);
+            "WHERE c.user_id = #{authorId}")
+    List<Post> commentsearch(int authorId);
 }

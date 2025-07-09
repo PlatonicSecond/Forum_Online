@@ -18,7 +18,7 @@ public class Post {
     private LocalDateTime createTime;
     @TableField("updateTime")
     private LocalDateTime updateTime;
-    private String postImgpath;
+    private String imgPath;
     private Integer plateId;
     private Integer viewcount;
 }

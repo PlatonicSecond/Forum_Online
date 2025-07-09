@@ -1,10 +1,406 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>绝区零 - 绳网界面 (后端集成版)</title>
+    <!-- 引入 Vue, Element UI, 和 Axios -->
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <style>
+        /* CSS 样式部分保持不变，此处省略以节省空间 */
+        /* ... 您的所有 CSS 样式代码都放在这里 ... */
+
+        /* 定义脉冲动画 */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* 全局样式 */
+        html, body {
+            margin: 0; padding: 0; background-color: #121212;
+        }
+        body {
+            color: #e0e0e0; font-family: sans-serif;
+        }
+        #app {
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cGF0aCBkPSJNLTEwIDQ1IEw0NSAtMTAgTTkwIDM1IEwzNSA5MCAiIHN0cm9rZT0icmdiYSgyNTUsIDI1NSwgMjU1LCAwLjA1KSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTS0xMCA5NSBMOTUgLTEwIiBzdHJva2U9InJnYmEoMjU1LCAyNTUsIDI1NSwgMC4wNSkiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==');
+            background-repeat: repeat;
+            min-height: 100vh;
+        }
+
+        /* 布局容器样式 */
+        .el-header.main-header { padding: 20px 30px; height: auto !important; border-bottom: 1px solid #2a2a2a; }
+        .el-main.main-content { padding: 20px 30px; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+
+        /* 用户信息按钮样式 */
+        .user-profile-button { display: flex; align-items: center; cursor: pointer; padding: 5px 10px; border-radius: 8px; transition: background-color 0.2s; }
+        .user-profile-button:hover { background-color: rgba(255, 255, 255, 0.08); }
+        .user-name-level { margin-left: 10px; width: 150px; display: flex; align-items: baseline; }
+        .user-name { font-size: 16px; font-weight: bold; }
+
+        /* === 顶部导航按钮组样式 - 高级版 === */
+        .tabs-container .el-button-group {
+            border-radius: 20px; /* 1. 为容器设置圆角 */
+            overflow: hidden;    /* 2. 隐藏内部超出部分，让圆角生效 */
+            font-size: 0;        /* 消除按钮间隙 */
+        }
+        .tabs-container .el-button-group .el-button {
+            background-color: #2a2a2a;
+            border: none !important;
+            color: #fff;
+            padding: 10px 30px;
+            font-size: 16px;
+            border-radius: 0 !important; /* 重置所有按钮的圆角 */
+            position: relative;
+            /* 3. 默认将所有按钮裁剪成平行四边形 */
+            clip-path: polygon(15px 0%, 100% 0%, calc(100% - 15px) 100%, 0% 100%);
+        }
+        /* 4. 对非第一个按钮应用负边距，使其与前一个按钮无缝拼接 */
+        .tabs-container .el-button-group .el-button:not(:first-child) {
+            margin-left: -15px; /* 这个值必须等于斜切的像素值 */
+        }
+        /* 5. 覆盖第一个按钮的裁剪，使其左边是直角 */
+        .tabs-container .el-button-group .el-button:first-child {
+            clip-path: polygon(0% 0%, 100% 0%, calc(100% - 15px) 100%, 0% 100%);
+            padding-left: 20px; /* 微调内边距，使文字更居中 */
+        }
+        /* 6. 覆盖最后一个按钮的裁剪，使其右边是直角 */
+        .tabs-container .el-button-group .el-button:last-child {
+            clip-path: polygon(15px 0%, 100% 0%, 100% 100%, 0% 100%);
+            padding-right: 20px; /* 微调内边距 */
+        }
+        /* 7. 激活按钮的样式：黄色背景和脉冲动画 */
+        .tabs-container .el-button-group .el-button.is-active {
+            background-color: #fde946;
+            color: #000;
+            font-weight: bold;
+            z-index: 2; /* 提高层级防止被覆盖 */
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        /* === 按钮样式结束 === */
+
+
+        /* 卡片网格和卡片样式 */
+        .post-card { background-color: #2c2c2c; border: 1px solid #444; border-radius: 12px; color: #e0e0e0; margin-bottom: 15px; overflow: hidden; transition: all 0.2s ease-in-out; cursor: pointer; }
+        .post-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .view-count { position: absolute; top: 8px; left: 8px; background-color: rgba(0, 0, 0, 0.6); color: white; padding: 3px 8px; border-radius: 12px; font-size: 12px; display: flex; align-items: center; }
+        .view-count .el-icon-view { margin-right: 4px; }
+        .card-content { padding: 12px; }
+        .author-info { display: flex; align-items: center; margin-bottom: 10px; }
+        .author-info span { margin-left: 8px; font-size: 13px; color: #aaa; }
+        .post-title { font-size: 15px; margin: 0 0 8px 0; font-weight: bold; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .post-description { font-size: 13px; color: #bbb; margin: 0; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .loading-more { text-align: center; padding: 20px; font-size: 24px; color: #666; }
+
+        /* 帖子详情弹窗样式 */
+        .post-dialog .el-dialog { background: #000; border: 1px solid #555; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .post-dialog .el-dialog__header { display: none; }
+        .post-dialog .el-dialog__body { padding: 0; }
+        .dialog-container { height: 80vh; color: #e0e0e0; }
+        .dialog-aside { background-color: #111; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .dialog-aside-placeholder { text-align: center; color: #666; }
+        .dialog-post-image { width: 100%; height: 100%; object-fit: cover; }
+        .dialog-main { padding: 0; display: flex; flex-direction: column; position: relative; }
+        .dialog-main-content { padding: 20px; flex: 1; overflow-y: auto; }
+        .dialog-main-content::-webkit-scrollbar { width: 6px; }
+        .dialog-main-content::-webkit-scrollbar-track { background: #222; }
+        .dialog-main-content::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+        .dialog-header { display: flex; align-items: center; margin-bottom: 15px; }
+        .dialog-close-button { position: absolute; top: 20px; right: 20px; z-index: 10; font-size: 20px; }
+        .dialog-post-title { font-size: 22px; font-weight: bold; margin: 0 0 10px; }
+        .dialog-post-body { font-size: 16px; line-height: 1.6; color: #ccc; margin-bottom: 20px; }
+        .comments-section h4 { font-size: 18px; border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 15px; }
+        .comment-item { display: flex; margin-bottom: 20px; }
+        .comment-details { margin-left: 12px; }
+        .comment-author { font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+        .comment-text { font-size: 14px; color: #ddd; }
+        .comment-form { margin-top: auto; padding: 20px; border-top: 1px solid #333; }
+        .comment-form .el-textarea__inner { background-color: #222; border-color: #444; color: #eee; }
+        .comment-form .el-button { margin-top: 10px; float: right; }
+    </style>
 </head>
 <body>
+<div id="app">
+    <el-container direction="vertical">
+        <!-- 顶部栏 -->
+        <el-header class="main-header">
+            <div class="header-content">
+                <!-- 左侧:用户信息按钮 -->
+                <div class="user-profile-button" @click="goToUserProfile">
+                    <el-avatar v-if="currentUser" :size="50" :src="currentUser.avatarPath"></el-avatar>
+                    <el-avatar v-else :size="50" icon="el-icon-user-solid"></el-avatar>
+                    <div class="user-name-level">
+                        <span class="user-name">{{ currentUser ? currentUser.username : '访客' }}</span>
+                    </div>
+                </div>
 
+                <!-- 右侧:导航Tabs -->
+                <div class="tabs-container">
+                    <el-button-group>
+                        <el-button
+                                v-for="tab in tabs"
+                                :key="tab.key"
+                                :class="{ 'is-active': activeTabKey === tab.key }"
+                                @click="activeTabKey = tab.key">
+                            {{ tab.name }}
+                        </el-button>
+                    </el-button-group>
+                </div>
+            </div>
+        </el-header>
+
+        <!-- 主内容区:帖子卡片网格 -->
+        <el-main class="main-content">
+            <div v-if="isLoading && columns[0].length === 0" class="loading-more" style="height: 50vh; display:flex; align-items:center; justify-content:center;">
+                <i class="el-icon-loading"></i>
+            </div>
+            <el-row v-else :gutter="15">
+                <!-- 修复了瀑布流布局的偏移量计算，使其更通用 -->
+                <el-col :span="24 / columns.length" v-for="(column, colIndex) in columns" :key="colIndex">
+                    <el-card v-for="card in column" :key="card.id" class="post-card" :body-style="{ padding: '0px' }" @click.native="openPostDialog(card)">
+                        <div v-if="card.imgPath" style="position: relative;">
+                            <el-image :src="card.imgPath" fit="cover" lazy style="width: 100%; height: 150px; display: block;"></el-image>
+                            <div class="view-count"><i class="el-icon-view"></i> {{ card.views }}</div>
+                        </div>
+                        <div class="card-content">
+                            <div class="author-info">
+                                <el-avatar :size="24" :src="card.authorAvatar"></el-avatar>
+                                <span>{{ card.authorName }}</span>
+                            </div>
+                            <h3 class="post-title">{{ card.title }}</h3>
+                            <p class="post-description">{{ card.description }}</p>
+                        </div>
+                    </el-card>
+                </el-col>
+            </el-row>
+            <div v-if="isLoading && columns[0].length > 0" class="loading-more"><i class="el-icon-loading"></i></div>
+        </el-main>
+    </el-container>
+
+    <!-- 帖子详情弹窗，使用 iframe -->
+    <el-dialog
+            class="post-dialog"
+            :visible.sync="dialogVisible"
+            width="80%"
+            top="5vh"
+            :destroy-on-close="true">
+        <iframe
+                v-if="dialogVisible"
+                :src="postUrl"
+                frameborder="0"
+                style="width: 100%; height: 85vh; border: none;">
+        </iframe>
+    </el-dialog>
+</div>
+
+<script>
+    // --- Axios 全局配置 ---
+    axios.defaults.baseURL = 'http://localhost:8080';
+    axios.defaults.withCredentials = true;
+
+    // 这个函数会在每次发送请求之前被调用
+    axios.interceptors.request.use(
+      config => {
+
+        const token = localStorage.getItem('token');
+
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      error => {
+        return Promise.reject(error);
+      }
+    );
+
+    new Vue({
+        el: '#app',
+        data: {
+            currentUser: null,
+            tabs: [],
+            activeTabKey: '',
+            availablePlates: [],
+            posts: [],
+            columns: [[], [], [], []], // 4列瀑布流
+            isLoading: false,
+            page: 1,
+            dialogVisible: false,
+            postUrl: ''
+        },
+        watch: {
+            activeTabKey(newKey, oldKey) {
+                if (newKey !== oldKey) {
+                    this.resetAndFetchData();
+                }
+            }
+        },
+        methods: {
+            /**
+             * 当用户点击一个卡片时触发，打开帖子详情弹窗
+             * @param {object} card - 被点击的卡片对象, 包含 id 等信息
+             */
+            openPostDialog(card) {
+                console.log('准备打开帖子详情, ID:', card.id);
+                // 1. 构建要嵌入的 post.html 的 URL, 并附上帖子 ID 作为查询参数
+                this.postUrl = `post.html?id=${card.id}`;
+                // 2. 显示弹窗
+                this.dialogVisible = true;
+            },
+
+            /**
+             * 获取当前登录用户信息
+             */
+            async fetchUserInfo() {
+                try {
+                    // 现在这个请求会自动带上 Authorization header (如果 token 存在)
+                    const response = await axios.get('/user/info');
+                    if (response.data) {
+                        this.currentUser = response.data.data;
+                    }
+                } catch (error) {
+                    console.error('获取用户信息失败:', error.response ? error.response.data : error.Message);
+                }
+            },
+
+            // fetchPlates 方法本身逻辑是好的，保持不变
+            async fetchPlates() {
+                try {
+                    const response = await axios.get('/plate/select');
+                    if (response.data.code === 200 && response.data.data) {
+                        const platesData = response.data.data;
+                        console.log("获取板块列表成功:", platesData);
+
+                        // 将动态板块转换为 tabs 格式
+                        const dynamicTabs = platesData.map(d => ({
+                            key: 'plate' + d.plateId,
+                            name: d.plateName,
+                            api: '/plate/postsearch',
+                            params: { plateId: d.plateId }
+                        }));
+
+                        // 将动态板块和固定板块合并后一次性赋值，这样更高效
+                        this.tabs = [
+                            ...dynamicTabs,
+                            { key: 'my-posts',  name: '我的帖子', api: '/plate/searchbyauthor', params: {} },
+                            { key: 'my-comments', name: '我的评论', api: '/plate/searchbycomment', params: {} }
+                        ];
+
+                    } else {
+                         console.error("获取板块列表失败:", response.Data);
+                    }
+                } catch (error) {
+                    console.error("获取板块API请求失败:", error);
+                    this.$message.error('无法加载板块列表');
+                }
+            },
+
+
+            /**
+             * 根据当前激活的Tab获取帖子数据
+             */
+            async fetchData() {
+                if (this.isLoading) return;
+                this.isLoading = true;
+
+                const activeTab = this.tabs.find(tab => tab.key === this.activeTabKey);
+                if (!activeTab) {
+                    console.error('未找到有效的Tab配置');
+                    this.isLoading = false;
+                    return;
+                }
+
+                // 如果是"我的帖子"或"我的评论"，但用户未登录，则不发起请求
+                if ((activeTab.key === 'my-posts' || activeTab.key === 'my-comments') && !this.currentUser) {
+                    this.$message.warning('请先登录以查看您的内容');
+                    this.isLoading = false;
+                    return;
+                }
+
+                const requestParams = {
+                    ...activeTab.params,
+                    page: this.page,
+                    pageSize: 15,
+                };
+
+                console.log(`正在请求 API: ${activeTab.api}`, '参数:', requestParams);
+
+                try {
+                    const response = await axios.get(activeTab.api, { params: requestParams });
+                    const newPosts = response.data.data.list || [];
+
+                    if (newPosts.length > 0) {
+                        this.distributePosts(newPosts);
+                        this.posts.push(...newPosts);
+                        this.page++;
+                    } else {
+                        if (this.page > 1) this.$message('没有更多内容了');
+                    }
+                } catch (error) {
+                    console.error('获取帖子数据失败:', error.response ? error.response.data : error.message);
+                    this.$message.error('数据加载失败，请稍后重试');
+                } finally {
+                    this.isLoading = false;
+                }
+            },
+
+            resetAndFetchData() {
+                this.posts = [];
+                this.columns = [[], [], [], []];
+                this.page = 1;
+                this.fetchData();
+            },
+
+            distributePosts(postsToDistribute) {
+                postsToDistribute.forEach(post => {
+                    let shortestColumnIndex = 0;
+                    let minHeight = this.columns[0].length;
+                    for (let i = 1; i < this.columns.length; i++) {
+                        if (this.columns[i].length < minHeight) {
+                            minHeight = this.columns[i].length;
+                            shortestColumnIndex = i;
+                        }
+                    }
+                    this.columns[shortestColumnIndex].push(post);
+                });
+            },
+
+            handleScroll() {
+                if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 && !this.isLoading) {
+                    this.fetchData();
+                }
+            },
+
+            goToUserProfile() {
+                window.location.href = 'home.html';
+            },
+        },
+
+        async created() {
+            this.fetchUserInfo();
+            await this.fetchPlates();
+            if (this.tabs.length > 0) {
+                this.activeTabKey = this.tabs[0].key;
+                this.fetchData();
+            } else {
+                console.warn("未能加载任何Tab，无法获取帖子数据。");
+            }
+        },
+
+        mounted() {
+            window.addEventListener('scroll', this.handleScroll);
+        },
+
+        beforeDestroy() {
+            window.removeEventListener('scroll', this.handleScroll);
+        }
+    });
+</script>
 </body>
 </html>

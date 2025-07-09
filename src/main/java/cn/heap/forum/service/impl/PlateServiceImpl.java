@@ -30,7 +30,7 @@ public class PlateServiceImpl implements PlateService {
     }
 
     @Override
-    public List<Post> commentsearch(int commentId, int authorId) {
-        return plateMapper.commentsearch(commentId,authorId);
+    public List<Post> commentsearch(int authorId) {
+        return plateMapper.commentsearch(authorId);
     }
 }

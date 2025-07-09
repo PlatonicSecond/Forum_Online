@@ -18,7 +18,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<Post> selectAll(int id){
         QueryWrapper queryWrapper = new QueryWrapper();
-        queryWrapper.eq("postId", id);
+        queryWrapper.eq("post_id", id);
         return postMapper.selectList(queryWrapper);
     }
 

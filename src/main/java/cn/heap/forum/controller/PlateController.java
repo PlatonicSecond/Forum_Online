@@ -63,8 +63,7 @@ public class PlateController {
 
     @GetMapping("/searchbycomment")
     @ApiParam(value = "寻找特定comment的post")
-    public ServerResult<PageInfo<Post>> selectPostBycomment(int commentId,
-                                                            @RequestParam(defaultValue = "1") int pageNum,
+    public ServerResult<PageInfo<Post>> selectPostBycomment(@RequestParam(defaultValue = "1") int pageNum,
                                                             @RequestParam(defaultValue = "15") int pageSize) {
         try {
             // 从ThreadLocal获取当前登录用户信息
@@ -73,7 +72,7 @@ public class PlateController {
                 return ServerResult.error(401, "用户未登录");
 
             PageHelper.startPage(pageNum, pageSize);
-            List<Post> posts = plateService.commentsearch(commentId, userId);
+            List<Post> posts = plateService.commentsearch(userId);
             return ServerResult.success(new PageInfo<>(posts));
         } catch (Exception e) {
             e.printStackTrace();
