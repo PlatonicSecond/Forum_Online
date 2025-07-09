@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/plate")
-@Api(tags = "plate管理类测试文档")
+@Api(tags = "plate-controller")
 public class PlateController {
     @Autowired
     private PlateService plateService;
@@ -64,7 +64,7 @@ public class PlateController {
             return ServerResult.success(plateService.commentsearch(commentId, userId));
         } catch (Exception e) {
             e.printStackTrace();
-            return ServerResult.error(500, "查找失败");
+            return ServerResult.error(500, "查找失败"+ e.getMessage());
         }
     }
 }

@@ -6,11 +6,11 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 @Data
-@TableName("Plate")
+@TableName("plate")
 public class Plate {
-    @TableId("plateId")
+    @TableId("plate_id")
     private Integer plateId;
-    @TableField("name")
+    @TableField("plate_name")
     private String name;
     @TableField("description")
     private String description;
