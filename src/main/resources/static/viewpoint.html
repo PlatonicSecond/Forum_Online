@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>论坛 </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#6B7280',
+                        accent: '#36CFC9',
+                        dark: '#1F2937',
+                        light: '#F9FAFB',
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+
+        .content-auto {
+            content-visibility: auto;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        .nav-active {
+            /* border-bottom: 3px solid theme('colors.primary');
+             color: theme('colors.primary');
+             font-weight: 600;*/
+        }
+        .text-balance {
+            /*text-wrap: balance;*/
+        }
+
+    </style>
+</head>
+
+<body class="font-inter bg-gray-50 min-h-screen">
+<!-- 导航栏 -->
+<header class="bg-white sticky top-0 z-50 shadow-sm">
+    <div class="container mx-auto px-4 py-4">
+        <!-- 网站标题 -->
+        <div class="text-center mb-4">
+            <h1 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-dark">
+                <i class="fa fa-comments-o mr-2 text-primary"></i>ShareForum
+            </h1>
+        </div>
+
+        <!-- 板块切换导航 -->
+        <nav class="flex justify-center space-x-8 mb-2">
+            <button id="daily-tab" class="nav-active py-2 px-1 text-lg transition-all duration-300">
+                <i class="fa fa-coffee mr-1"></i>日常
+            </button>
+            <button id="recommend-tab" class="py-2 px-1 text-lg text-gray-600 hover:text-primary transition-all duration-300">
+                <i class="fa fa-star-o mr-1"></i>推荐
+            </button>
+        </nav>
+    </div>
+</header>
+
+<!-- 主内容区 -->
+<main class="container mx-auto px-4 py-8">
+    <!-- 日常板块 -->
+    <section id="daily-section" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- 这里的帖子数据将通过 JavaScript 动态生成 -->
+        </div>
+    </section>
+
+    <!-- 推荐板块 (默认隐藏) -->
+    <section id="recommend-section" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- 这里的帖子数据将通过 JavaScript 动态生成 -->
+        </div>
+    </section>
+
+    <!-- 帖子详情模态框 (默认隐藏) -->
+    <div id="post-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl w-full max-w-3xl max-h-[90vh] overflow-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 id="modal-title" class="text-2xl font-bold text-dark"></h2>
+                    <button id="close-modal" class="text-gray-500 hover:text-gray-700 text-xl">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="flex items-center mb-6">
+                    <img id="modal-author-avatar" src="" alt="用户头像" class="w-12 h-12 rounded-full">
+                    <div class="ml-3">
+                        <p id="modal-author-name" class="font-medium text-dark"></p>
+                        <p id="modal-create-time" class="text-sm text-gray-500"></p>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <p id="modal-content" class="text-gray-700 leading-relaxed"></p>
+                </div>
+
+                <div class="mb-6">
+                    <img id="modal-img" src="" alt="帖子图片" class="rounded-lg max-w-full">
+                </div>
+
+                <div class="flex justify-between items-center text-sm text-gray-500">
+            <span id="modal-plate" class="flex items-center">
+              <i class="fa fa-folder-o mr-1"></i>
+              <span></span>
+            </span>
+                    <div class="flex space-x-4">
+              <span class="flex items-center">
+                <i class="fa fa-heart-o mr-1"></i>
+                <span id="modal-likes">0</span>
+              </span>
+                        <span class="flex items-center">
+                <i class="fa fa-comment-o mr-1"></i>
+                <span id="modal-comments">0</span>
+              </span>
+                        <span class="flex items-center">
+                <i class="fa fa-eye mr-1"></i>
+                <span id="modal-views">0</span>
+              </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- 页脚 -->
+<footer class="bg-white border-t border-gray-200 py-6">
+    <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+        <p>© 2025 ShareForum. 保留所有权利.</p>
+    </div>
+</footer>
+
+<script>
+    // 模拟后端数据
+    const mockData = {
+        plates: [
+            { plateId: 1, name: "日常讨论", description: "分享日常生活的点滴" },
+            { plateId: 2, name: "技术交流", description: "探讨技术问题和经验" },
+            { plateId: 3, name: "资源分享", description: "分享各类实用资源" },
+            { plateId: 4, name: "活动公告", description: "论坛活动和公告" },
+            { plateId: 5, name: "休闲娱乐", description: "轻松娱乐内容" }
+        ],
+        posts: [
+            {
+                postId: 1,
+                content: "今天尝试了新的咖啡配方，味道真的很赞！分享给大家~周末在家研究了一款新的手冲咖啡配方，用了哥伦比亚的豆子，口感很顺滑，带点水果的酸香...",
+                authorId: 1,
+                createTime: "2025-07-05T14:30:00",
+                postImgpath: "https://picsum.photos/seed/post1/800/600",
+                plateId: 1
+            },
+            {
+                postId: 2,
+                content: "分享今日份的跑步记录，坚持锻炼真的很有成就感。今天完成了5公里慢跑，配速比上周提高了30秒，坚持一个月果然有效果，继续加油！...",
+                authorId: 2,
+                createTime: "2025-07-06T18:30:00",
+                postImgpath: "https://picsum.photos/seed/post2/800/600",
+                plateId: 1
+            },
+            {
+                postId: 3,
+                content: "自制的草莓蛋糕，颜值和味道都在线~周末在家尝试做了草莓蛋糕，用了新鲜的草莓和动物奶油，口感很清爽，一点都不腻...",
+                authorId: 3,
+                createTime: "2025-07-03T10:15:00",
+                postImgpath: "https://picsum.photos/seed/post3/800/600",
+                plateId: 5
+            },
+            {
+                postId: 4,
+                content: "分享一本最近在读的好书，推荐给大家。《人类简史》真的是一本打开眼界的书，作者从全新的视角解读了人类发展的历程...",
+                authorId: 4,
+                createTime: "2025-07-02T16:45:00",
+                postImgpath: "https://picsum.photos/seed/post4/800/600",
+                plateId: 2
+            },
+            {
+                postId: 5,
+                content: "城市傍晚的天空，随手一拍都是美景。今天下班路上看到的天空，粉紫色的晚霞太美了，忍不住停下来拍了几张...",
+                authorId: 5,
+                createTime: "2025-07-01T19:20:00",
+                postImgpath: "https://picsum.photos/seed/post5/800/600",
+                plateId: 5
+            },
+            {
+                postId: 6,
+                content: "摄影技巧分享：如何拍出绝美的风光照。总结了几点风光摄影的小技巧，包括构图、光线选择和后期处理，新手也能快速上手...",
+                authorId: 6,
+                createTime: "2025-06-28T09:10:00",
+                postImgpath: "https://picsum.photos/seed/rec1/800/600",
+                plateId: 2
+            },
+            {
+                postId: 7,
+                content: "隐藏的旅行宝藏地，人少景美还免费。推荐几个不太为人知的旅行地点，避开人群，享受宁静的美景，附详细攻略...",
+                authorId: 7,
+                createTime: "2025-06-25T11:30:00",
+                postImgpath: "https://picsum.photos/seed/rec2/800/600",
+                plateId: 5
+            },
+            {
+                postId: 8,
+                content: "推荐一款超好用的代码编辑器，效率提升300%！最近尝试了VS Code的新插件，代码提示和自动补全功能太强大了，开发效率大幅提升...",
+                authorId: 8,
+                createTime: "2025-06-22T15:45:00",
+                postImgpath: "https://picsum.photos/seed/rec3/800/600",
+                plateId: 2
+            },
+            {
+                postId: 9,
+                content: "分享一个免费的学习资源网站，涵盖各种领域的教程和资料。这个网站上的学习资源非常丰富，而且全部免费，特别适合自学...",
+                authorId: 9,
+                createTime: "2025-06-20T13:20:00",
+                postImgpath: "https://picsum.photos/seed/rec4/800/600",
+                plateId: 3
+            },
+            {
+                postId: 10,
+                content: "论坛将在本周六举办线上技术交流活动，欢迎各位参加！本次活动将邀请行业专家分享前沿技术，还有互动问答环节，奖品丰厚...",
+                authorId: 10,
+                createTime: "2025-06-18T10:00:00",
+                postImgpath: "https://picsum.photos/seed/rec5/800/600",
+                plateId: 4
+            }
+        ],
+        users: [
+            { userId: 1, username: "林小夏", avatar: "https://picsum.photos/seed/user1/100/100" },
+            { userId: 2, username: "王大力", avatar: "https://picsum.photos/seed/user2/100/100" },
+            { userId: 3, username: "张小花", avatar: "https://picsum.photos/seed/user3/100/100" },
+            { userId: 4, username: "刘阳阳", avatar: "https://picsum.photos/seed/user4/100/100" },
+            { userId: 5, username: "陈明", avatar: "https://picsum.photos/seed/user5/100/100" },
+            { userId: 6, username: "摄影爱好者", avatar: "https://picsum.photos/seed/recuser1/100/100" },
+            { userId: 7, username: "旅行博主", avatar: "https://picsum.photos/seed/recuser2/100/100" },
+            { userId: 8, username: "技术达人", avatar: "https://picsum.photos/seed/recuser3/100/100" },
+            { userId: 9, username: "学习小助手", avatar: "https://picsum.photos/seed/recuser4/100/100" },
+            { userId: 10, username: "论坛管理员", avatar: "https://picsum.photos/seed/recuser5/100/100" }
+        ]
+    };
+
+    // 工具函数：格式化日期
+    function formatDate(localDateTime) {
+        const date = new Date(localDateTime);
+        return date.toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    // 工具函数：获取用户信息
+    function getUser(userId) {
+        return mockData.users.find(user => user.userId === userId) || {
+            username: "未知用户",
+            avatar: "https://picsum.photos/seed/unknown/100/100"
+        };
+    }
+
+    // 工具函数：获取板块信息
+    function getPlate(plateId) {
+        return mockData.plates.find(plate => plate.plateId === plateId) || {
+            name: "未知板块",
+            description: ""
+        };
+    }
+
+    // 渲染帖子列表
+    function renderPosts(sectionId, posts) {
+        const section = document.getElementById(sectionId);
+        const grid = section.querySelector('.grid');
+        grid.innerHTML = '';
+
+        posts.forEach(post => {
+            const user = getUser(post.authorId);
+            const plate = getPlate(post.plateId);
+
+            const postElement = document.createElement('article');
+            postElement.className = 'bg-white rounded-xl overflow-hidden card-shadow card-hover';
+            postElement.innerHTML = `
+          <div class="relative h-48 bg-cover bg-center" style="background-image: url('${post.postImgpath}')">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="absolute bottom-4 left-4 flex items-center">
+              <img src="${user.avatar}" alt="${user.username}的头像" class="w-10 h-10 rounded-full border-2 border-white">
+              <div class="ml-3 text-white">
+                <p class="font-medium">${user.username}</p>
+                <p class="text-sm opacity-90">${formatDate(post.createTime)}</p>
+              </div>
+            </div>
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold text-lg mb-2 line-clamp-2">${post.content.substring(0, 30)}...</h3>
+            <p class="text-gray-600 text-sm line-clamp-2 mb-3">${post.content.substring(30, 60)}...</p>
+            <div class="flex justify-between text-gray-500 text-sm">
+              <span><i class="fa fa-folder-o mr-1"></i>${plate.name}</span>
+              <div class="flex space-x-3">
+                <span><i class="fa fa-heart-o mr-1"></i>${Math.floor(Math.random() * 100)}</span>
+                <span><i class="fa fa-comment-o mr-1"></i>${Math.floor(Math.random() * 30)}</span>
+                <span><i class="fa fa-eye mr-1"></i>${Math.floor(Math.random() * 500)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+
+            // 添加点击事件，显示帖子详情
+            postElement.addEventListener('click', () => {
+                showPostDetails(post);
+            });
+
+            grid.appendChild(postElement);
+        });
+    }
+
+    // 显示帖子详情
+    function showPostDetails(post) {
+        const user = getUser(post.authorId);
+        const plate = getPlate(post.plateId);
+
+        document.getElementById('modal-title').textContent = post.content.substring(0, 30) + '...';
+        document.getElementById('modal-author-avatar').src = user.avatar;
+        document.getElementById('modal-author-name').textContent = user.username;
+        document.getElementById('modal-create-time').textContent = formatDate(post.createTime);
+        document.getElementById('modal-content').textContent = post.content;
+        document.getElementById('modal-img').src = post.postImgpath;
+        document.getElementById('modal-img').alt = post.content.substring(0, 10) + '...';
+        document.getElementById('modal-plate').querySelector('span').textContent = plate.name;
+        document.getElementById('modal-likes').textContent = Math.floor(Math.random() * 100);
+        document.getElementById('modal-comments').textContent = Math.floor(Math.random() * 30);
+        document.getElementById('modal-views').textContent = Math.floor(Math.random() * 500);
+
+        document.getElementById('post-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // 防止背景滚动
+    }
+
+    // 关闭帖子详情
+    document.getElementById('close-modal').addEventListener('click', () => {
+        document.getElementById('post-modal').classList.add('hidden');
+        document.body.style.overflow = 'auto'; // 恢复背景滚动
+    });
+
+    // 板块切换功能
+    document.getElementById('daily-tab').addEventListener('click', () => {
+        document.getElementById('daily-tab').classList.add('nav-active');
+        document.getElementById('recommend-tab').classList.remove('nav-active');
+        document.getElementById('daily-section').classList.remove('hidden');
+        document.getElementById('recommend-section').classList.add('hidden');
+    });
+
+    document.getElementById('recommend-tab').addEventListener('click', () => {
+        document.getElementById('recommend-tab').classList.add('nav-active');
+        document.getElementById('daily-tab').classList.remove('nav-active');
+        document.getElementById('recommend-section').classList.remove('hidden');
+        document.getElementById('daily-section').classList.add('hidden');
+    });
+
+    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        // 日常板块显示前5个帖子
+        renderPosts('daily-section', mockData.posts.slice(0, 5));
+
+        // 推荐板块显示后5个帖子
+        renderPosts('recommend-section', mockData.posts.slice(5, 10));
+    });
+</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>论坛注册 - Forum Online</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .register-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input.error {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .success-message {
+            color: #28a745;
+            font-size: 14px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .register-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .register-btn:active {
+            transform: translateY(0);
+        }
+
+        .register-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            position: relative;
+        }
+
+        .error-details {
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        .error-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .error-btn {
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 4px;
+            color: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .error-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .copy-success {
+            background: #d4edda !important;
+            color: #155724 !important;
+            border-color: #c3e6cb !important;
+        }
+
+        .password-strength {
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 5px;
+            background: #e1e5e9;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .strength-weak { background: #dc3545; width: 25%; }
+        .strength-fair { background: #fd7e14; width: 50%; }
+        .strength-good { background: #ffc107; width: 75%; }
+        .strength-strong { background: #28a745; width: 100%; }
+
+        @media (max-width: 480px) {
+            .register-container {
+                padding: 30px 20px;
+            }
+
+            .logo h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="register-container">
+        <div class="logo">
+            <h1>📝 Forum Online</h1>
+            <p>创建您的账户开始交流</p>
+        </div>
+
+        <!-- 成功/错误提示 -->
+        <div v-if="message.text" :class="['alert', message.type === 'success' ? 'alert-success' : 'alert-error']">
+            {{ message.text }}
+
+            <!-- 错误详情（仅在错误时显示） -->
+            <div v-if="message.type === 'error' && message.details" class="error-details">
+                <strong>错误详情:</strong><br>
+                {{ message.details }}
+            </div>
+
+            <!-- 错误操作按钮 -->
+            <div v-if="message.type === 'error'" class="error-actions">
+                <button class="error-btn" @click="copyErrorInfo" :disabled="copying">
+                    {{ copying ? '复制中...' : '📋 复制错误信息' }}
+                </button>
+                <button class="error-btn" @click="showTechnicalDetails = !showTechnicalDetails">
+                    {{ showTechnicalDetails ? '隐藏' : '显示' }}技术详情
+                </button>
+            </div>
+
+            <!-- 技术详情（展开时显示） -->
+            <div v-if="message.type === 'error' && showTechnicalDetails && message.technical" class="error-details">
+                <strong>技术信息:</strong><br>
+                {{ message.technical }}
+            </div>
+        </div>
+
+        <form @submit.prevent="register">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input
+                        type="text"
+                        id="username"
+                        v-model="form.username"
+                        :class="{ error: errors.username }"
+                        placeholder="请输入用户名（3-50个字符）"
+                        @input="validateUsername"
+                        @blur="validateUsername"
+                />
+                <span v-if="errors.username" class="error-message">{{ errors.username }}</span>
+            </div>
+
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input
+                        type="password"
+                        id="password"
+                        v-model="form.password"
+                        :class="{ error: errors.password }"
+                        placeholder="请输入密码（至少6个字符）"
+                        @input="validatePassword"
+                        @blur="validatePassword"
+                />
+                <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
+
+                <!-- 密码强度指示器 -->
+                <div v-if="form.password" class="password-strength">
+                    <div class="strength-text">密码强度：{{ passwordStrength.text }}</div>
+                    <div class="strength-bar">
+                        <div :class="['strength-fill', passwordStrength.class]"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">确认密码</label>
+                <input
+                        type="password"
+                        id="confirmPassword"
+                        v-model="form.confirmPassword"
+                        :class="{ error: errors.confirmPassword }"
+                        placeholder="请再次输入密码"
+                        @input="validateConfirmPassword"
+                        @blur="validateConfirmPassword"
+                />
+                <span v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</span>
+            </div>
+
+            <div class="form-group">
+                <label for="roleId">用户角色</label>
+                <select
+                        id="roleId"
+                        v-model="form.roleId"
+                        :class="{ error: errors.roleId }"
+                        @change="validateRoleId"
+                >
+                    <option value="">请选择角色</option>
+                    <option value="0">普通用户</option>
+                    <option value="1">管理员</option>
+                </select>
+                <span v-if="errors.roleId" class="error-message">{{ errors.roleId }}</span>
+            </div>
+
+            <button type="submit" class="register-btn" :disabled="loading || !isFormValid">
+                <span v-if="loading" class="loading"></span>
+                {{ loading ? '注册中...' : '立即注册' }}
+            </button>
+        </form>
+
+        <div class="login-link">
+            <p>已有账户？<a href="login.html">立即登录</a></p>
+        </div>
+
+        <!-- 错误测试工具（开发调试用） -->
+        <div class="error-test" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e1e5e9;">
+            <p style="text-align: center; color: #666; font-size: 12px; margin-bottom: 10px;">
+                🔧 错误处理测试工具（开发调试用）
+            </p>
+            <div style="display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;">
+                <button class="error-btn" @click="testError('network')" style="font-size: 10px; padding: 2px 6px;">
+                    网络错误
+                </button>
+                <button class="error-btn" @click="testError('username')" style="font-size: 10px; padding: 2px 6px;">
+                    用户名重复
+                </button>
+                <button class="error-btn" @click="testError('database')" style="font-size: 10px; padding: 2px 6px;">
+                    数据库错误
+                </button>
+                <button class="error-btn" @click="testError('validation')" style="font-size: 10px; padding: 2px 6px;">
+                    验证错误
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/vue.js"></script>
+<script src="js/axios.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            form: {
+                username: '',
+                password: '',
+                confirmPassword: '',
+                roleId: ''
+            },
+            errors: {},
+            message: {
+                text: '',
+                type: '',
+                details: '',
+                technical: ''
+            },
+            loading: false,
+            copying: false,
+            showTechnicalDetails: false,
+            lastError: null
+        },
+        computed: {
+            isFormValid() {
+                return this.form.username &&
+                    this.form.password &&
+                    this.form.confirmPassword &&
+                    this.form.roleId &&
+                    Object.keys(this.errors).length === 0;
+            },
+            passwordStrength() {
+                const password = this.form.password;
+                if (!password) return { text: '', class: '' };
+
+                let score = 0;
+                if (password.length >= 6) score++;
+                if (password.length >= 8) score++;
+                if (/[a-z]/.test(password)) score++;
+                if (/[A-Z]/.test(password)) score++;
+                if (/[0-9]/.test(password)) score++;
+                if (/[^A-Za-z0-9]/.test(password)) score++;
+
+                if (score < 2) return { text: '弱', class: 'strength-weak' };
+                if (score < 4) return { text: '一般', class: 'strength-fair' };
+                if (score < 5) return { text: '良好', class: 'strength-good' };
+                return { text: '强', class: 'strength-strong' };
+            }
+        },
+        methods: {
+            validateUsername() {
+                const username = this.form.username;
+                if (!username) {
+                    this.$set(this.errors, 'username', '用户名不能为空');
+                } else if (username.length < 3) {
+                    this.$set(this.errors, 'username', '用户名至少3个字符');
+                } else if (username.length > 50) {
+                    this.$set(this.errors, 'username', '用户名不能超过50个字符');
+                } else {
+                    this.$delete(this.errors, 'username');
+                }
+            },
+            validatePassword() {
+                const password = this.form.password;
+                if (!password) {
+                    this.$set(this.errors, 'password', '密码不能为空');
+                } else if (password.length < 6) {
+                    this.$set(this.errors, 'password', '密码至少6个字符');
+                } else {
+                    this.$delete(this.errors, 'password');
+                }
+
+                // 重新验证确认密码
+                if (this.form.confirmPassword) {
+                    this.validateConfirmPassword();
+                }
+            },
+            validateConfirmPassword() {
+                const confirmPassword = this.form.confirmPassword;
+                if (!confirmPassword) {
+                    this.$set(this.errors, 'confirmPassword', '确认密码不能为空');
+                } else if (confirmPassword !== this.form.password) {
+                    this.$set(this.errors, 'confirmPassword', '两次输入的密码不一致');
+                } else {
+                    this.$delete(this.errors, 'confirmPassword');
+                }
+            },
+            validateRoleId() {
+                const roleId = this.form.roleId;
+                if (!roleId) {
+                    this.$set(this.errors, 'roleId', '请选择用户角色');
+                } else {
+                    this.$delete(this.errors, 'roleId');
+                }
+            },
+            validateAll() {
+                this.validateUsername();
+                this.validatePassword();
+                this.validateConfirmPassword();
+                this.validateRoleId();
+            },
+            showMessage(text, type, details = '', technical = '') {
+                this.message = { text, type, details, technical };
+                this.showTechnicalDetails = false;
+                setTimeout(() => {
+                    this.message = { text: '', type: '', details: '', technical: '' };
+                }, 8000);
+            },
+            getDetailedErrorMessage(error) {
+                // 保存错误对象供后续使用
+                this.lastError = error;
+
+                // 构建技术详情
+                const technicalInfo = this.buildTechnicalInfo(error);
+
+                let userMessage = '';
+                let details = '';
+
+                // 1. 网络连接错误 - 前端连接后端失败
+                if (error.code === 'ECONNREFUSED' || (error.message && error.message.includes('ECONNREFUSED'))) {
+                    userMessage = '❌ 前端连接后端失败，无法连接到服务器';
+                    details = '可能原因：\n1. 后端服务器未启动\n2. 端口号配置错误\n3. 防火墙阻止了连接\n4. 服务器地址错误';
+                }
+
+                // 2. 网络超时错误
+                else if (error.code === 'ECONNABORTED' || (error.message && error.message.includes('timeout'))) {
+                    userMessage = '⏱️ 请求超时，请检查网络连接后重试';
+                    details = '请求在规定时间内未收到响应，可能是网络延迟或服务器负载过高';
+                }
+
+                // 3. 服务器响应错误
+                else if (error.response) {
+                    const status = error.response.status;
+                    const data = error.response.data;
+
+                    // 根据HTTP状态码返回具体错误
+                    switch (status) {
+                        case 400:
+                            // 检查具体的400错误类型
+                            if (data && data.message) {
+                                if (data.message.includes('用户名不能为空')) {
+                                    userMessage = '❌ 用户名为空，请输入用户名';
+                                    details = '注册失败原因：用户名字段为空或未传递到后端';
+                                } else if (data.message.includes('密码不能为空')) {
+                                    userMessage = '❌ 密码为空，请输入密码';
+                                    details = '注册失败原因：密码字段为空或未传递到后端';
+                                } else if (data.message.includes('确认密码不能为空')) {
+                                    userMessage = '❌ 确认密码为空，请输入确认密码';
+                                    details = '注册失败原因：确认密码字段为空或未传递到后端';
+                                } else if (data.message.includes('用户名长度')) {
+                                    userMessage = '❌ 用户名长度不符合要求';
+                                    details = '注册失败原因：用户名长度必须在3-50个字符之间';
+                                } else if (data.message.includes('密码长度')) {
+                                    userMessage = '❌ 密码长度不符合要求';
+                                    details = '注册失败原因：密码长度至少需要6个字符';
+                                } else if (data.message.includes('两次输入的密码不一致')) {
+                                    userMessage = '❌ 两次输入的密码不一致';
+                                    details = '注册失败原因：密码与确认密码不匹配';
+                                } else {
+                                    userMessage = `❌ 请求参数错误: ${data.message}`;
+                                    details = '服务器无法理解请求的语法或参数格式不正确';
+                                }
+                            } else {
+                                userMessage = '❌ 请求参数错误，请检查填写的信息';
+                                details = '服务器无法理解请求的语法或参数格式不正确';
+                            }
+                            break;
+                        case 401:
+                            userMessage = '🔒 未授权访问，请先登录';
+                            details = '请求需要用户认证，当前用户未登录或登录状态已过期';
+                            break;
+                        case 403:
+                            userMessage = '🚫 权限不足，无法执行此操作';
+                            details = '服务器理解请求，但拒绝执行，可能是权限不足';
+                            break;
+                        case 404:
+                            userMessage = '🔍 注册接口不存在，请检查URL';
+                            details = '可能原因：\n1. 注册API端点配置错误\n2. 后端路由配置问题\n3. 接口地址拼写错误';
+                            break;
+                        case 405:
+                            userMessage = '🚫 请求方法不被允许，服务器不支持该HTTP方法';
+                            details = '注册失败原因：\n1. 后端服务器未启动或配置错误\n2. 注册接口只支持POST方法，但收到了其他方法\n3. 服务器路由配置问题\n4. 可能是静态文件服务器，不支持API请求';
+                            break;
+                        case 409:
+                            // 重点处理用户名重复的情况
+                            if (data && data.message) {
+                                if (data.message.includes('用户名已存在') || data.message.includes('用户名重复')) {
+                                    userMessage = '❌ 用户名已被占用，请选择其他用户名';
+                                    details = '注册失败原因：该用户名已被其他用户注册，请尝试其他用户名';
+                                } else {
+                                    userMessage = `⚠️ 数据冲突: ${data.message}`;
+                                    details = '请求与服务器当前状态发生冲突，例如重复注册用户名';
+                                }
+                            } else {
+                                userMessage = '⚠️ 数据冲突，请检查是否重复提交';
+                                details = '请求与服务器当前状态发生冲突，例如重复注册用户名';
+                            }
+                            break;
+                        case 422:
+                            userMessage = data && data.message ?
+                                `📝 数据验证失败: ${data.message}` :
+                                '📝 数据验证失败，请检查表单信息';
+                            details = '请求格式正确但包含语义错误，服务器无法处理';
+                            break;
+                        case 429:
+                            userMessage = '⏳ 请求过于频繁，请稍后再试';
+                            details = '客户端请求过多，触发了服务器的速率限制';
+                            break;
+                        case 500:
+                            // 重点处理后端连接数据库错误
+                            if (data && data.message) {
+                                if (data.message.includes('数据库') || data.message.includes('database') || data.message.includes('MySQL')) {
+                                    userMessage = '❌ 后端连接数据库失败，请稍后重试';
+                                    details = '注册失败原因：\n1. 数据库服务器未启动\n2. 数据库连接配置错误\n3. 数据库权限不足\n4. 数据库连接池耗尽';
+                                } else if (data.message.includes('服务器内部错误')) {
+                                    userMessage = '❌ 服务器内部错误，请联系管理员';
+                                    details = '注册失败原因：服务器处理请求时发生内部错误';
+                                } else {
+                                    userMessage = `🔧 服务器内部错误: ${data.message}`;
+                                    details = '服务器遇到意外情况，无法完成请求';
+                                }
+                            } else {
+                                userMessage = '🔧 服务器内部错误，请联系管理员';
+                                details = '服务器遇到意外情况，无法完成请求';
+                            }
+                            break;
+                        case 502:
+                            userMessage = '🌐 网关错误，服务器暂时不可用';
+                            details = '网关或代理服务器从上游服务器接收到无效响应';
+                            break;
+                        case 503:
+                            userMessage = '🔧 服务器维护中，请稍后再试';
+                            details = '服务器暂时无法处理请求，通常是临时状态';
+                            break;
+                        case 504:
+                            userMessage = '⏱️ 服务器响应超时，请稍后重试';
+                            details = '网关或代理服务器未能及时从上游服务器获得响应';
+                            break;
+                        default:
+                            userMessage = data && data.message ?
+                                `❌ 请求失败 (${status}): ${data.message}` :
+                                `❌ 请求失败 (状态码: ${status})`;
+                            details = `HTTP ${status} 错误，详情请查看技术信息`;
+                    }
+                }
+
+                // 4. 网络错误（无响应）- 前端发送请求但后端无响应
+                else if (error.request) {
+                    userMessage = '🌐 前端请求发送失败，网络连接异常';
+                    details = '注册失败原因：\n1. 网络连接中断\n2. 后端服务器无响应\n3. 请求被网络防火墙阻止\n4. DNS解析失败\n5. 代理服务器配置错误';
+                }
+
+                // 5. 请求配置错误
+                else if (error.config) {
+                    userMessage = '⚙️ 请求配置错误，请刷新页面后重试';
+                    details = '请求配置有误，可能是前端代码问题';
+                }
+
+                // 6. 其他未知错误
+                else if (error.message) {
+                    userMessage = `❌ 操作失败: ${error.message}`;
+                    details = '发生了未分类的错误，请查看技术信息';
+                }
+
+                // 7. 兜底错误信息
+                else {
+                    userMessage = '❌ 发生未知错误，请刷新页面后重试';
+                    details = '无法识别的错误类型，请联系技术支持';
+                }
+
+                // 显示详细错误信息
+                this.showMessage(userMessage, 'error', details, technicalInfo);
+
+                return userMessage;
+            },
+            buildTechnicalInfo(error) {
+                // 构建技术详情信息
+                const info = {
+                    timestamp: new Date().toISOString(),
+                    url: window.location.href,
+                    userAgent: navigator.userAgent.substring(0, 100) + '...',
+                    error: {}
+                };
+
+                if (error.response) {
+                    info.error = {
+                        type: '服务器响应错误',
+                        status: error.response.status,
+                        statusText: error.response.statusText,
+                        url: error.response.config?.url || '未知',
+                        method: error.response.config?.method?.toUpperCase() || '未知',
+                        headers: error.response.headers,
+                        data: error.response.data
+                    };
+                } else if (error.request) {
+                    info.error = {
+                        type: '网络请求错误',
+                        code: error.code,
+                        message: error.message,
+                        timeout: error.config?.timeout || '未设置',
+                        url: error.config?.url || '未知',
+                        method: error.config?.method?.toUpperCase() || '未知'
+                    };
+                } else {
+                    info.error = {
+                        type: '其他错误',
+                        message: error.message,
+                        stack: error.stack?.substring(0, 500) || '无堆栈信息'
+                    };
+                }
+
+                return JSON.stringify(info, null, 2);
+            },
+            async copyErrorInfo() {
+                if (this.copying) return;
+
+                this.copying = true;
+                try {
+                    const errorInfo = `
+论坛注册错误报告
+时间: ${new Date().toLocaleString()}
+错误信息: ${this.message.text}
+错误详情: ${this.message.details}
+
+技术信息:
+${this.message.technical}
+                        `.trim();
+
+                    if (navigator.clipboard) {
+                        await navigator.clipboard.writeText(errorInfo);
+                    } else {
+                        // 兼容旧浏览器
+                        const textArea = document.createElement('textarea');
+                        textArea.value = errorInfo;
+                        textArea.style.position = 'fixed';
+                        textArea.style.opacity = '0';
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                    }
+
+                    // 短暂显示复制成功
+                    const originalText = this.message.text;
+                    this.message.text = '✅ 错误信息已复制到剪贴板';
+                    setTimeout(() => {
+                        if (this.message.text === '✅ 错误信息已复制到剪贴板') {
+                            this.message.text = originalText;
+                        }
+                    }, 2000);
+
+                } catch (err) {
+                    console.error('复制失败:', err);
+                    alert('复制失败，请手动复制错误信息');
+                } finally {
+                    this.copying = false;
+                }
+            },
+            testError(type) {
+                // 错误测试方法，用于演示各种错误处理情况
+                let mockError;
+
+                switch (type) {
+                    case 'network':
+                        // 模拟网络连接错误
+                        mockError = {
+                            code: 'ECONNREFUSED',
+                            message: 'connect ECONNREFUSED 127.0.0.1:8091'
+                        };
+                        this.getDetailedErrorMessage(mockError);
+                        break;
+
+                    case 'username':
+                        // 模拟用户名重复错误
+                        mockError = {
+                            response: {
+                                status: 409,
+                                data: {
+                                    code: 409,
+                                    message: '用户名已存在，请选择其他用户名'
+                                }
+                            }
+                        };
+                        this.getDetailedErrorMessage(mockError);
+                        break;
+
+                    case 'database':
+                        // 模拟数据库连接错误
+                        mockError = {
+                            response: {
+                                status: 500,
+                                data: {
+                                    code: 500,
+                                    message: '数据库连接失败'
+                                }
+                            }
+                        };
+                        this.getDetailedErrorMessage(mockError);
+                        break;
+
+                    case 'validation':
+                        // 模拟表单验证错误
+                        mockError = {
+                            response: {
+                                status: 400,
+                                data: {
+                                    code: 400,
+                                    message: '密码不能为空'
+                                }
+                            }
+                        };
+                        this.getDetailedErrorMessage(mockError);
+                        break;
+
+                    default:
+                        this.showMessage('❓ 未知的错误类型测试', 'error');
+                }
+            },
+            async register() {
+                this.validateAll();
+
+                if (!this.isFormValid) {
+                    this.showMessage('❌ 表单验证失败，请检查所有必填项', 'error',
+                        '注册失败原因：表单信息不完整或格式不正确',
+                        JSON.stringify({
+                            errors: this.errors,
+                            form: this.form,
+                            timestamp: new Date().toISOString()
+                        }, null, 2));
+                    return;
+                }
+
+                this.loading = true;
+
+                try {
+                    // 添加请求前的日志
+                    console.log('🚀 开始注册请求:', {
+                        username: this.form.username,
+                        roleId: this.form.roleId,
+                        timestamp: new Date().toISOString()
+                    });
+
+                    const response = await axios.post('http://localhost:8091/user/register', {
+                        username: this.form.username,
+                        password: this.form.password,
+                        confirmPassword: this.form.confirmPassword,
+                        roleId: parseInt(this.form.roleId)
+                    });
+
+                    console.log('📥 收到服务器响应:', response.data);
+
+                    if (response.data.code === 200) {
+                        this.showMessage('🎉 注册成功！即将跳转到主页...', 'success');
+
+                        // 保存用户信息到localStorage
+                        localStorage.setItem('username', this.form.username);
+                        localStorage.setItem('userRole', this.form.roleId);
+
+                        setTimeout(() => {
+                            window.location.href = `home.html?username=${encodeURIComponent(this.form.username)}`;
+                        }, 2000);
+                    } else {
+                        // 处理后端返回的业务错误
+                        const errorMessage = response.data.message || '注册失败';
+                        let details = '后端业务逻辑验证失败';
+
+                        // 根据具体的错误消息提供更详细的说明
+                        if (errorMessage.includes('用户名已存在')) {
+                            details = '注册失败原因：该用户名已被其他用户使用，请选择一个新的用户名';
+                        } else if (errorMessage.includes('密码')) {
+                            details = '注册失败原因：密码不符合要求，请检查密码格式';
+                        } else if (errorMessage.includes('用户名')) {
+                            details = '注册失败原因：用户名不符合要求，请检查用户名格式';
+                        } else if (errorMessage.includes('角色')) {
+                            details = '注册失败原因：用户角色选择有误或角色不存在';
+                        }
+
+                        this.showMessage(`❌ ${errorMessage}`, 'error', details, JSON.stringify(response.data, null, 2));
+                    }
+                } catch (error) {
+                    console.error('❌ 注册请求失败:', error);
+                    // getDetailedErrorMessage 现在会自动调用 showMessage
+                    this.getDetailedErrorMessage(error);
+                } finally {
+                    this.loading = false;
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>
