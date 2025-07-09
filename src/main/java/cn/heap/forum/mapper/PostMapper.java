@@ -8,7 +8,9 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface PostMapper extends BaseMapper<Post> {
-    @Insert("insert into post(title,content,userId,plateId,createTime,updateTime,viewCount)"+
-            "values(#{title},#{content},#{authorId},#{plateId},#{createTime},#{createTime},0)")
+    @Insert("insert into post(title,content,author_id,plate_id,create_time,img_path)"+
+            "values(#{title},#{content},#{authorId},#{plateId},#{createTime},#{imgPath})")
     void add(PostDTO postDTO);
+
+
 }

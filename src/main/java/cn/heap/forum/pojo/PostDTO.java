@@ -1,18 +1,46 @@
 package cn.heap.forum.pojo;
 
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.NonNull;
 
 import java.time.LocalDateTime;
 
 @Data
 public class PostDTO {
+    @NonNull
+    private String title;
     private String content;
     private Integer authorId;
-    @TableField("createTime") // 映射数据库字段名
+    @TableField("create_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT")
     private LocalDateTime createTime;
-    private String postImgpath;
+    private String imgPath;
     private Integer plateId;
-    private Integer viewcount;
+    private Integer viewCount;
+
+    // 添加无参构造方法（Jackson 反序列化需要）
+    public PostDTO() {
+    }
+
+    // 可选：添加带 @JsonCreator 的构造方法（显式指定反序列化方式）
+    @JsonCreator
+    public PostDTO(
+            @JsonProperty("title") @NonNull String title,
+            @JsonProperty("content") String content,
+            @JsonProperty("authorId") Integer authorId,
+            @JsonProperty("imgPath") String imgPath,
+            @JsonProperty("plateId") Integer plateId,
+            @JsonProperty("viewCount") Integer viewCount
+    ) {
+        this.title = title;
+        this.content = content;
+        this.authorId = authorId;
+        this.imgPath = imgPath;
+        this.plateId = plateId;
+        this.viewCount = viewCount;
+    }
 }

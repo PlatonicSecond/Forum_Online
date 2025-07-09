@@ -56,9 +56,9 @@ public class CommentController {
     }
 
     // 根据 ID 查询评论
-    @GetMapping("/{CommentId}")
-    public ServerResult<Comment> getCommentById(@PathVariable Integer CommentId) {
-        Comment comment = commentService.getCommentById(CommentId);
+    @GetMapping("/{commentId}")
+    public ServerResult<Comment> getCommentById(@PathVariable Integer commentId) {
+        Comment comment = commentService.getCommentById(commentId);
         if (comment != null) {
             return ServerResult.success(comment);
         } else {

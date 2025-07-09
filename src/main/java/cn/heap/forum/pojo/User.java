@@ -8,15 +8,15 @@ import java.time.LocalDateTime;
 @Data
 @TableName("user")
 public class User {
-    @TableId(value = "userId", type = IdType.AUTO)
+    @TableId(value = "user_id", type = IdType.AUTO)
     private Integer userId;
     private String username;
     private String password;
-    @TableField("avatarPath")  // 指定数据库字段名
+    @TableField("avatar_path")  // 指定数据库字段名
     private String avatarPath;
-    @TableField("roleId")
+    @TableField("role_id")
     private Integer roleId;
-    @TableField("registerTime")
+    @TableField("register_time")
     private LocalDateTime registerTime;
 }
 
