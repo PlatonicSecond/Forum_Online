@@ -2,6 +2,7 @@ package cn.heap.forum.controller;
 
 
 import cn.heap.forum.pojo.Plate;
+import cn.heap.forum.pojo.PlatePostDTO;
 import cn.heap.forum.pojo.Post;
 import cn.heap.forum.service.PlateService;
 import cn.heap.forum.util.ServerResult;
@@ -33,17 +34,17 @@ public class PlateController {
 
     @GetMapping("/postsearch")
     @ApiParam(value = "寻找特定plate的post")
-    public ServerResult<PageInfo<Post>> selectPostById(int plateId,
-                                                       @RequestParam(defaultValue = "1") int pageNum,
-                                                       @RequestParam(defaultValue = "15") int pageSize) {
+    public ServerResult<PageInfo<PlatePostDTO>> selectPostById(int plateId,
+                                                               @RequestParam(defaultValue = "1") int pageNum,
+                                                               @RequestParam(defaultValue = "15") int pageSize) {
         PageHelper.startPage(pageNum, pageSize);
-        List<Post> posts = plateService.search(plateId);
+        List<PlatePostDTO> posts = plateService.search(plateId);
         return ServerResult.success(new PageInfo<>(posts));
     }
 
     @GetMapping("/searchbyauthor")
     @ApiParam(value = "寻找author的post")
-    public ServerResult<PageInfo<Post>> selectPostByUser(
+    public ServerResult<PageInfo<PlatePostDTO>> selectPostByUser(
             @RequestParam(defaultValue = "1") int pageNum,
             @RequestParam(defaultValue = "15") int pageSize) {
         try {
@@ -53,7 +54,7 @@ public class PlateController {
                 return ServerResult.error(401, "用户未登录");
 
             PageHelper.startPage(pageNum, pageSize);
-            List<Post> posts = plateService.authorsearch(userId);
+            List<PlatePostDTO> posts = plateService.authorsearch(userId);
             return ServerResult.success(new PageInfo<>(posts));
         } catch (Exception e) {
             e.printStackTrace();
@@ -63,7 +64,7 @@ public class PlateController {
 
     @GetMapping("/searchbycomment")
     @ApiParam(value = "寻找特定comment的post")
-    public ServerResult<PageInfo<Post>> selectPostBycomment(@RequestParam(defaultValue = "1") int pageNum,
+    public ServerResult<PageInfo<PlatePostDTO>> selectPostBycomment(@RequestParam(defaultValue = "1") int pageNum,
                                                             @RequestParam(defaultValue = "15") int pageSize) {
         try {
             // 从ThreadLocal获取当前登录用户信息
@@ -72,7 +73,7 @@ public class PlateController {
                 return ServerResult.error(401, "用户未登录");
 
             PageHelper.startPage(pageNum, pageSize);
-            List<Post> posts = plateService.commentsearch(userId);
+            List<PlatePostDTO> posts = plateService.commentsearch(userId);
             return ServerResult.success(new PageInfo<>(posts));
         } catch (Exception e) {
             e.printStackTrace();

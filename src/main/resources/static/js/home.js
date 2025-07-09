@@ -1,5 +1,5 @@
 // 设置axios基础URL
-axios.defaults.baseURL = 'http://localhost:8091';
+axios.defaults.baseURL = 'http://localhost:8080';
 
 // 从localStorage获取token并设置到axios header
 const token = localStorage.getItem('token');
@@ -174,7 +174,7 @@ new Vue({
             window.location.href = 'login.html';
         },
         exploreForums() {
-            alert('🚀 论坛浏览功能即将开发！');
+            window.location.href = 'index.html';
         },
         goToDiscussions() {
             alert('💬 讨论区功能即将开发！');

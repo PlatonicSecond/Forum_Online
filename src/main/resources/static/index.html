@@ -66,14 +66,14 @@
             margin-left: -15px; /* 这个值必须等于斜切的像素值 */
         }
         /* 5. 覆盖第一个按钮的裁剪，使其左边是直角 */
-        .tabs-container .el-button-group .el-button:first-child {
+        .tabs-container .el-button-group .el-button.is-first-tab {
             clip-path: polygon(0% 0%, 100% 0%, calc(100% - 15px) 100%, 0% 100%);
-            padding-left: 20px; /* 微调内边距，使文字更居中 */
+            padding-left: 20px;
         }
         /* 6. 覆盖最后一个按钮的裁剪，使其右边是直角 */
-        .tabs-container .el-button-group .el-button:last-child {
+        .tabs-container .el-button-group .el-button.is-last-tab {
             clip-path: polygon(15px 0%, 100% 0%, 100% 100%, 0% 100%);
-            padding-right: 20px; /* 微调内边距 */
+            padding-right: 20px;
         }
         /* 7. 激活按钮的样式：黄色背景和脉冲动画 */
         .tabs-container .el-button-group .el-button.is-active {
@@ -144,10 +144,16 @@
                 <div class="tabs-container">
                     <el-button-group>
                         <el-button
-                                v-for="tab in tabs"
-                                :key="tab.key"
-                                :class="{ 'is-active': activeTabKey === tab.key }"
-                                @click="activeTabKey = tab.key">
+                            v-for="(tab, index) in tabs"
+                            :key="tab.key"
+
+                            :class="{
+                                'is-active': activeTabKey === tab.key,
+                                'is-first-tab': index === 0,  // 如果是第一个元素，添加 'is-first-tab' 类
+                                'is-last-tab': index === tabs.length - 1 // 如果是最后一个，添加 'is-last-tab' 类
+                            }"
+
+                            @click="activeTabKey = tab.key">
                             {{ tab.name }}
                         </el-button>
                     </el-button-group>
@@ -163,15 +169,15 @@
             <el-row v-else :gutter="15">
                 <!-- 修复了瀑布流布局的偏移量计算，使其更通用 -->
                 <el-col :span="24 / columns.length" v-for="(column, colIndex) in columns" :key="colIndex">
-                    <el-card v-for="card in column" :key="card.id" class="post-card" :body-style="{ padding: '0px' }" @click.native="openPostDialog(card)">
+                    <el-card v-for="card in column" :key="card.postId" class="post-card" :body-style="{ padding: '0px' }" @click.native="openPostDialog(card)">
                         <div v-if="card.imgPath" style="position: relative;">
                             <el-image :src="card.imgPath" fit="cover" lazy style="width: 100%; height: 150px; display: block;"></el-image>
-                            <div class="view-count"><i class="el-icon-view"></i> {{ card.views }}</div>
+                            <div class="view-count"><i class="el-icon-view"></i> {{ card.viewCount }}</div>
                         </div>
                         <div class="card-content">
                             <div class="author-info">
-                                <el-avatar :size="24" :src="card.authorAvatar"></el-avatar>
-                                <span>{{ card.authorName }}</span>
+                                <el-avatar :size="24" :src="card.avatarPath"></el-avatar>
+                                <span>{{ card.username }}</span>
                             </div>
                             <h3 class="post-title">{{ card.title }}</h3>
                             <p class="post-description">{{ card.description }}</p>
@@ -280,7 +286,7 @@
                         // 将动态板块转换为 tabs 格式
                         const dynamicTabs = platesData.map(d => ({
                             key: 'plate' + d.plateId,
-                            name: d.plateName,
+                            name: d.name,
                             api: '/plate/postsearch',
                             params: { plateId: d.plateId }
                         }));
@@ -334,6 +340,7 @@
                 try {
                     const response = await axios.get(activeTab.api, { params: requestParams });
                     const newPosts = response.data.data.list || [];
+                    console.log(response.data);
 
                     if (newPosts.length > 0) {
                         this.distributePosts(newPosts);

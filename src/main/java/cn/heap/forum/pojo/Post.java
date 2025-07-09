@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class Post {
     @TableId("postId")
     private Integer postId;
+    private String title;
     private String content;
     private Integer authorId;
     @TableField("createTime") // 映射数据库字段名
@@ -20,5 +21,5 @@ public class Post {
     private LocalDateTime updateTime;
     private String imgPath;
     private Integer plateId;
-    private Integer viewcount;
+    private Integer viewCount;
 }

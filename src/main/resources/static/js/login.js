@@ -1,5 +1,5 @@
 // 设置axios基础URL
-axios.defaults.baseURL = 'http://localhost:8091';
+axios.defaults.baseURL = 'http://localhost:8080';
 
 // 检查是否从注册页面跳转过来
 document.addEventListener('DOMContentLoaded', function() {
@@ -45,7 +45,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
                 // 跳转到主页
                 setTimeout(() => {
-                    window.location.href = `home.html?username=${encodeURIComponent(loginData.username)}`;
+                    window.location.href = `index.html?username=${encodeURIComponent(loginData.username)}`;
                 }, 1000);
             } else {
                 alert('❌ 登录失败：服务器返回数据格式错误');

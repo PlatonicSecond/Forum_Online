@@ -2,6 +2,7 @@ package cn.heap.forum.service.impl;
 
 import cn.heap.forum.mapper.PlateMapper;
 import cn.heap.forum.pojo.Plate;
+import cn.heap.forum.pojo.PlatePostDTO;
 import cn.heap.forum.pojo.Post;
 import cn.heap.forum.service.PlateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,17 +21,17 @@ public class PlateServiceImpl implements PlateService {
     }
 
     @Override
-    public List<Post> search(int plateId) {
+    public List<PlatePostDTO> search(int plateId) {
         return plateMapper.search(plateId);
     }
 
     @Override
-    public List<Post> authorsearch(int userId) {
+    public List<PlatePostDTO> authorsearch(int userId) {
         return plateMapper.authorsearch(userId);
     }
 
     @Override
-    public List<Post> commentsearch(int authorId) {
+    public List<PlatePostDTO> commentsearch(int authorId) {
         return plateMapper.commentsearch(authorId);
     }
 }
