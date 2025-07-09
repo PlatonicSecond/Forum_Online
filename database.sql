@@ -66,10 +66,10 @@ INSERT INTO Role (roleName, description) VALUES
 
 -- 插入默认版块数据
 INSERT INTO Plate (plateName, description) VALUES 
-('技术讨论', '技术相关话题讨论'),
-('生活分享', '生活经验和心得分享'),
-('新手报到', '新用户介绍和问题咨询'),
-('公告通知', '系统公告和重要通知');
+('推荐', '浏览量大于五百优质内容'),
+('日常', '普通帖子'),
+('我的帖子', '用户创建的帖子'),
+('我评论过', '用户评论过的帖子');
 
 -- 创建索引以提高查询性能
 CREATE INDEX idx_user_username ON User(username);
