@@ -15,11 +15,12 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -35,9 +36,9 @@ public class PostController {
         return ServerResult.success(postService.selectAll(id));
     }
 
-    @PostMapping("/add")
+    @PostMapping(value = "/add", consumes = "multipart/form-data")
     @ApiOperation(value = "创建帖子", notes = "用户创建新帖子")
-    public ServerResult<Void> add(@RequestBody PostDTO post) {
+    public ServerResult<Void> add(@RequestBody PostDTO post, MultipartFile file) {
         try {
             // 从ThreadLocal获取当前登录用户信息
             Integer currentUserId = UserContext.getCurrentUserId();
@@ -46,28 +47,23 @@ public class PostController {
                 return ServerResult.error(401, "用户未登录");
             }
 
+            // 生成唯一的文件名
+            String fileName = UUID.randomUUID().toString() + ".jpg";
+
+            try {
+                file.transferTo(new File("src/main/resources/static/imgs",fileName)); // 保存图片
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
             // 设置帖子的创建信息
             post.setAuthorId(currentUserId);
             post.setViewCount(0);
             post.setCreateTime(LocalDateTime.now());
 
-            // 处理图片
-            if (post.getImgBase64() != null && !post.getImgBase64().isEmpty()) {
-                // 解码Base64图片字符串
-                byte[] imageBytes = Base64Utils.decodeFromString(post.getImgBase64());
-
-                // 生成唯一的文件名
-                String fileName = UUID.randomUUID().toString() + ".jpg";
-                String filePath = "src/main/resources/static/img/" + fileName;
-
-                // 保存图片到指定目录
-                File imageFile = new File(filePath);
-                FileUtils.writeByteArrayToFile(imageFile, imageBytes);
-
-                // 拼接图片的URL
-                String imageUrl = "/img/" + fileName;
-                post.setImgPath(imageUrl);
-            }
+            String imageUrl = "/img/" + fileName;
+            post.setImgPath(imageUrl);
 
             postService.add(post);
             return ServerResult.success();

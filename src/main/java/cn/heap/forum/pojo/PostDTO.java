@@ -19,7 +19,6 @@ public class PostDTO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT")
     private LocalDateTime createTime;
     private String imgPath;  // 存储图片的URL路径
-    private String imgBase64; // 接收前端上传的Base64编码图片
     private Integer plateId;
     private Integer viewCount;
 
@@ -34,7 +33,6 @@ public class PostDTO {
             @JsonProperty("content") String content,
             @JsonProperty("authorId") Integer authorId,
             @JsonProperty("imgPath") String imgPath,
-            @JsonProperty("imgBase64") String imgBase64,
             @JsonProperty("plateId") Integer plateId,
             @JsonProperty("viewCount") Integer viewCount
     ) {
@@ -42,19 +40,8 @@ public class PostDTO {
         this.content = content;
         this.authorId = authorId;
         this.imgPath = imgPath;
-        this.imgBase64 = imgBase64;
         this.plateId = plateId;
         this.viewCount = viewCount;
-    }
-
-    // 获取图片的Base64编码
-    public String getImgBase64() {
-        return imgBase64;
-    }
-
-    // 设置图片的Base64编码
-    public void setImgBase64(String imgBase64) {
-        this.imgBase64 = imgBase64;
     }
 
     // 获取图片路径
