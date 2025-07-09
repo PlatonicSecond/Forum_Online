@@ -9,4 +9,6 @@ public interface PostService {
     List<Post> selectAll(int id);
 
     void add(PostDTO postDTO);
+
+    void delete(int id);
 }
