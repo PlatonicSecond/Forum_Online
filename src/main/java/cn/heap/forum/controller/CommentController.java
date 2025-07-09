@@ -72,4 +72,15 @@ public class CommentController {
         List<Comment> comments = commentService.getCommentsByPostId(postId);
         return ServerResult.success(comments);
     }
+
+    @PostMapping("/reply")
+    public ServerResult<Comment> replyComment(@RequestBody Comment comment) {
+        Comment newComment = commentService.replyComment(comment);
+        if (newComment != null) {
+            messagingTemplate.convertAndSend("/topic/comments", newComment);
+            return ServerResult.success(newComment);
+        } else {
+            return ServerResult.error(500, "回复失败");
+        }
+    }
 }
