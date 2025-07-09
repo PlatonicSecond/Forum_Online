@@ -11,6 +11,15 @@ import java.util.Date;
 @Data
 @TableName("comment")
 public class Comment {
+    @TableId(value = "comment_id", type = IdType.AUTO)
+    private Integer commentId;
+    private String content;
+    private Integer authorId;
+    private Integer userId;
+    private Integer postId;
+    @TableField("create_time")
+    private Date createTime;
+
     public Integer getCommentId() {
         return commentId;
     }
@@ -59,13 +68,6 @@ public class Comment {
         this.createTime = createTime;
     }
 
-    @TableId(value = "comment_id", type = IdType.AUTO)
-    private Integer commentId;
-    private String content;
-    private Integer authorId;
-    private Integer userId;
-    private Integer postId;
-    @TableField("create_time")
-    private Date createTime;
+
 
 }
