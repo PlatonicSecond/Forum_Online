@@ -1,5 +1,5 @@
 // 设置axios基础URL
-axios.defaults.baseURL = 'http://localhost:8091';
+axios.defaults.baseURL = 'http://localhost:8080';
 
 
 // 表单元素
@@ -143,6 +143,10 @@ registerForm.addEventListener('submit', async function(e) {
             password: password,
             confirmPassword: confirmPassword,
             roleId: 1 // 默认为普通用户
+        },{
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
 
         if (response.data && response.data.code === 200) {

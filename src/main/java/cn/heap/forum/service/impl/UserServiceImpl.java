@@ -9,6 +9,7 @@ import cn.heap.forum.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,6 +19,9 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
 
@@ -58,8 +62,13 @@ public class UserServiceImpl implements UserService {
 
         // 4. 创建用户对象
         User user = new User();
+
+        // 加密密码
+        String encodedPassword = passwordEncoder.encode(registerRequest.getPassword());
+
+
         user.setUsername(registerRequest.getUsername());
-        user.setPassword(registerRequest.getPassword()); // 直接存储明文密码
+        user.setPassword(encodedPassword); // 存储加密后的密码
         user.setRoleId(registerRequest.getRoleId() != null ? registerRequest.getRoleId() : 1); // 默认角色ID为1
         user.setRegisterTime(LocalDateTime.now());
 
@@ -114,8 +123,11 @@ public class UserServiceImpl implements UserService {
         }
         System.out.println("✅ 用户存在: " + user.getUsername());
 
-        // 3. 验证密码（这里是明文比较）
-        if (!loginRequest.getPassword().equals(user.getPassword())) {
+        // 3. 验证密码
+        String curPassword = loginRequest.getPassword();
+        String encodedPassword = user.getPassword();
+        boolean match = passwordEncoder.matches(curPassword, encodedPassword);
+        if (!match) {
             System.out.println("❌ 密码错误");
             return null;
         }
@@ -152,7 +164,12 @@ public class UserServiceImpl implements UserService {
                     return false;
                 }
 
-                if (!currentUser.getPassword().equals(updateRequest.getPassword())) {
+                String correctPassword = currentUser.getPassword();
+                String inputPassword = updateRequest.getNewPassword();
+                String savePassword = passwordEncoder.encode(inputPassword);
+                boolean match = passwordEncoder.matches(inputPassword, correctPassword);
+
+                if (!match) {
                     System.out.println("❌ 原密码错误");
                     return false;
                 }
@@ -167,7 +184,7 @@ public class UserServiceImpl implements UserService {
                     return false;
                 }
 
-                currentUser.setPassword(updateRequest.getNewPassword());
+                currentUser.setPassword(savePassword);
                 System.out.println("✅ 密码更新准备完成");
             }
 
@@ -193,6 +210,8 @@ public class UserServiceImpl implements UserService {
 
             // 5. 更新头像路径
             if (updateRequest.getAvatarPath() != null) {
+                String path = updateRequest.getAvatarPath().trim();;
+
                 currentUser.setAvatarPath(updateRequest.getAvatarPath());
                 System.out.println("✅ 头像路径更新准备完成");
             }
