@@ -123,6 +123,44 @@
         .comment-form { margin-top: auto; padding: 20px; border-top: 1px solid #333; }
         .comment-form .el-textarea__inner { background-color: #222; border-color: #444; color: #eee; }
         .comment-form .el-button { margin-top: 10px; float: right; }
+
+        /* 动画过渡效果 */
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .floating-button {
+            position: fixed;
+            z-index: 1000;
+            bottom: 30px;
+            right: 30px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .floating-button:hover {
+            background-color: #218838;
+            transform: scale(1.1);
+        }
+
+        .floating-button .icon {
+            width: 28px;
+            height: 28px;
+        }
     </style>
 </head>
 <body>
@@ -180,7 +218,7 @@
                                 <span>{{ card.username }}</span>
                             </div>
                             <h3 class="post-title">{{ card.title }}</h3>
-                            <p class="post-description">{{ card.description }}</p>
+                            <p class="post-description">{{ card.content }}</p>
                         </div>
                     </el-card>
                 </el-col>
@@ -188,6 +226,19 @@
             <div v-if="isLoading && columns[0].length > 0" class="loading-more"><i class="el-icon-loading"></i></div>
         </el-main>
     </el-container>
+
+    <transition name="fade">
+        <button
+                v-if="currentUser"
+        class="floating-button"
+        @click="openAddDialog"
+        title="发布新帖子">
+        <!-- 加号 SVG 图标 -->
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        </button>
+    </transition>
 
     <!-- 帖子详情弹窗，使用 iframe -->
     <el-dialog
@@ -248,15 +299,16 @@
             }
         },
         methods: {
-            /**
-             * 当用户点击一个卡片时触发，打开帖子详情弹窗
-             * @param {object} card - 被点击的卡片对象, 包含 id 等信息
-             */
+
+            openAddDialog() {
+                // 使用相对于服务器根目录的绝对路径
+                this.postUrl = 'addpost.html'; // 注意前面的斜杠 '/'
+                this.dialogVisible = true;
+            },
+
             openPostDialog(card) {
                 console.log('准备打开帖子详情, ID:', card.id);
-                // 1. 构建要嵌入的 post.html 的 URL, 并附上帖子 ID 作为查询参数
                 this.postUrl = `post.html?id=${card.id}`;
-                // 2. 显示弹窗
                 this.dialogVisible = true;
             },
 

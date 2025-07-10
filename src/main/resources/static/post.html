@@ -3,376 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <title>帖子详情</title>
+    <!-- 引入 Vue.js 和 Axios.js -->
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        /* ========== Layout ========== */
-        /* Lock the viewport to prevent whole page scrolling */
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            overflow: hidden; /* CRITICAL: Prevents the body from scrolling */
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f0f2f5;
-        }
-
-        .post-layout {
-            display: flex;
-            height: 100%;
-        }
-
-        .left-column {
-            flex: 0 0 60%; /* Left column takes 60% of the width */
-            background-color: #000;
-            position: relative;
-        }
-
-        .right-column {
-            flex: 1; /* Right column takes the remaining space */
-            padding: 40px;
-            box-sizing: border-box;
-            overflow-y: auto; /* CRITICAL: Makes this column scrollable */
-            background-color: #fff;
-        }
-
-        /* ========== Left Column (Image) ========== */
-        #post-image {
-            width: 100%;
-            height: 100%;
-            object-fit: contain; /* 'contain' fits the whole image, 'cover' fills the space */
-        }
-
-        .image-loading, .image-error {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            color: #ccc;
-            font-size: 20px;
-        }
-
-        /* ========== Right Column (Content & Comments) ========== */
-        .post-info h1 {
-            font-size: 32px;
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: #1a1a1a;
-        }
-
-        .post-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            padding-bottom: 20px;
-            margin-bottom: 25px;
-            border-bottom: 1px solid #e5e5e5;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .post-body {
-            font-size: 16px;
-            line-height: 1.8;
-            color: #333;
-            padding-bottom: 40px;
-            margin-bottom: 30px;
-            border-bottom: 1px solid #e5e5e5;
-        }
-        .post-body img { /* Style images inside the content */
-            max-width: 100%;
-            border-radius: 4px;
-        }
-
-        /* ========== Comments Section ========== */
-        .comments-section h2 {
-            margin-bottom: 20px;
-        }
-
-        #comments-list .comment-item {
-            padding: 15px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        #comments-list .comment-item:last-child {
-            border-bottom: none;
-        }
-
-        .comment-author { font-weight: bold; margin-bottom: 5px; }
-        .comment-content { margin-bottom: 8px; }
-        .comment-time { font-size: 12px; color: #999; }
-
-        /* Comment Form */
-        #comment-form {
-            margin-top: 20px;
-        }
-        #comment-form textarea {
-            width: 100%;
-            min-height: 80px;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-            resize: vertical;
-            font-size: 14px;
-        }
-        #comment-form button {
-            display: block;
-            margin-top: 10px;
-            margin-left: auto;
-            padding: 10px 25px;
-            border: none;
-            background-color: #ffd800; /* Yellow button like in the main page */
-            color: #000;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        #comment-form button:hover {
-            background-color: #fde946;
-        }
-        #comment-form button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        #comment-status {
-            font-size: 14px;
-            margin-top: 10px;
-        }
-
-    </style>
+    <link rel="stylesheet" href="css/post.css">
 </head>
 <body>
 
-<div class="post-layout">
+<div id="app" class="post-layout">
     <!-- LEFT COLUMN: IMAGE -->
     <div class="left-column">
-        <div id="image-loading" class="image-loading">正在加载图片...</div>
-        <img id="post-image" style="display: none;" alt="帖子图片">
+        <div v-if="isLoading.image">正在加载图片...</div>
+        <img v-else-if="post.imgPath" :src="postImageSrc" :alt="post.title" id="post-image">
+        <div v-else>暂无图片</div>
     </div>
 
     <!-- RIGHT COLUMN: CONTENT & COMMENTS -->
     <div class="right-column">
-        <!-- Container for post details -->
-        <div id="post-details">
+        <!-- Overall Loading/Error for the right column -->
+        <div v-if="isLoading.details" class="loading-indicator">正在加载帖子详情...</div>
+        <div v-else-if="error" class="error-message">{{ error }}</div>
+
+        <!-- Container for post details (v-else ensures it only shows after loading and no error) -->
+        <div v-else id="post-details">
             <div class="post-info">
-                <h1 id="post-title"></h1>
+                <h1>{{ post.title }}</h1>
                 <div class="post-meta">
-                    <span id="post-user"></span>
-                    <span id="post-time"></span>
-                    <span id="post-views"></span>
+                    <span>👤 作者: {{ post.username || `ID: ${post.userId}` }}</span>
+                    <span>🕒 发布于: {{ formattedCreateTime }}</span>
+                    <span>👁️ 浏览: {{ post.viewCount }}</span>
                 </div>
-                <div id="post-body" class="post-body"></div>
+                <div class="post-body" v-html="post.content"></div>
             </div>
 
             <!-- Container for comments -->
             <div class="comments-section">
-                <h2>评论区</h2>
+                <h2>评论区 ({{ comments.length }})</h2>
                 <div id="comments-list">
-                    <!-- Comments will be dynamically inserted here -->
+                    <div v-if="isLoading.comments">正在加载评论...</div>
+                    <p v-else-if="comments.length === 0">还没有评论，快来抢占沙发吧！</p>
+                    <div v-else>
+                        <div v-for="comment in comments" :key="comment.commentId" class="comment-item">
+                            <div class="comment-author">用户: {{ comment.authorUsername || `ID: ${comment.authorId}` }}</div>
+                            <div class="comment-content">{{ comment.content }}</div>
+                            <div class="comment-time">{{ formatDateTime(comment.createTime) }}</div>
+                        </div>
+                    </div>
                 </div>
+
                 <!-- Form for new comments -->
-                <form id="comment-form">
+                <form @submit.prevent="handleCommentSubmit" id="comment-form">
                     <h3>发表评论</h3>
-                    <textarea id="comment-content" required placeholder="请留下你的评论..."></textarea>
-                    <button type="submit" id="submit-comment-btn">发布</button>
-                    <p id="comment-status"></p>
+                    <textarea
+                            v-model="newComment.content"
+                            :disabled="!currentUser"
+                            required
+                            :placeholder="commentPlaceholder"
+                    ></textarea>
+                    <button type="submit" :disabled="isSubmitting || !currentUser">
+                        {{ isSubmitting ? '发布中...' : '发布' }}
+                    </button>
+                    <p v-if="commentStatus" :class="['status', commentStatus.type]">{{ commentStatus.message }}</p>
                 </form>
             </div>
         </div>
-
-        <!-- Overall Loading/Error for the right column -->
-        <div id="loading-indicator">正在加载...</div>
-        <div id="error-message" style="display: none;"></div>
-
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-
-        // --- STATE VARIABLES ---
-        let postId = null;
-        let currentUserId = null; // Store logged-in user's ID
-
-        // --- DOM ELEMENT REFERENCES ---
-        const postDetailsEl = document.getElementById('post-details');
-        const loadingIndicatorEl = document.getElementById('loading-indicator');
-        const errorMessageEl = document.getElementById('error-message');
-        const imageLoadingEl = document.getElementById('image-loading');
-
-        // Form elements
-        const commentForm = document.getElementById('comment-form');
-        const commentContentEl = document.getElementById('comment-content');
-        const submitBtn = document.getElementById('submit-comment-btn');
-        const commentStatusEl = document.getElementById('comment-status');
-
-
-        // --- HELPER FUNCTIONS ---
-        function formatDateTime(dateTimeString) {
-            if (!dateTimeString) return '未知时间';
-            // Handles both Date objects and "YYYY-MM-DDTHH:mm:ss" strings
-            return new Date(dateTimeString).toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-');
-        }
-
-        // --- API CALLS & RENDERING ---
-
-        /**
-         * Fetch info of the currently logged-in user
-         * Needed to know who is authoring the comment.
-         */
-        async function fetchCurrentUser() {
-            try {
-                const response = await axios.get('/user/info');
-                if (response.data && response.data.id) { // Assuming user object has an 'id'
-                    currentUserId = response.data.id;
-                }
-            } catch (error) {
-                console.warn('获取当前用户信息失败，将无法发表评论。', error.message);
-                commentContentEl.placeholder = '请先登录才能发表评论';
-                commentContentEl.disabled = true;
-                submitBtn.disabled = true;
+    // --- Axios 全局配置 ---
+    axios.defaults.baseURL = 'http://localhost:8080';
+    axios.defaults.withCredentials = true;
+    axios.interceptors.request.use(
+        config => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
             }
-        }
+            return config;
+        },
+        error => Promise.reject(error)
+    );
 
-        /**
-         * Fetch main post details based on postId
-         */
-        async function fetchPostDetails() {
-            try {
-                const response = await axios.get('/post/select', { params: { id: postId } });
-                const post = response.data;
-                if (!post || !post.postId) throw new Error('未找到该帖子');
-
-                // Render text content
-                document.getElementById('post-title').textContent = post.title;
-                document.getElementById('post-user').textContent = `👤 作者ID: ${post.userId}`;
-                document.getElementById('post-time').textContent = `🕒 发布于: ${formatDateTime(post.createTime)}`;
-                document.getElementById('post-views').textContent = `👁️ 浏览: ${post.viewCount}`;
-                document.getElementById('post-body').innerHTML = post.content;
-
-                // Render image in left column
-                const postImageEl = document.getElementById('post-image');
-                if (post.imgPath) {
-                    // IMPORTANT: The path from the backend is relative to the static folder.
-                    // We construct the URL by prefixing it with `/imgs/` (or whatever your static mapping is)
-                    postImageEl.src = '/imgs/' + post.imgPath;
-                    postImageEl.style.display = 'block';
-                }
-                imageLoadingEl.style.display = 'none';
-
-            } catch (error) {
-                throw new Error(`加载帖子详情失败: ${error.message}`);
+    new Vue({
+        el: '#app',
+        data: {
+            postId: null,
+            post: {},
+            comments: [],
+            currentUser: null,
+            newComment: {
+                content: '',
+            },
+            isLoading: {
+                details: true,
+                image: true,
+                comments: true,
+            },
+            isSubmitting: false,
+            error: null,
+            commentStatus: null, // { message: '...', type: 'success' | 'error' }
+        },
+        computed: {
+            postImageSrc() {
+                return this.post.imgPath ? `/imgs/${this.post.imgPath}` : '';
+            },
+            formattedCreateTime() {
+                return this.formatDateTime(this.post.createTime);
+            },
+            commentPlaceholder() {
+                return this.currentUser ? '请留下你的评论...' : '请先登录才能发表评论';
             }
-        }
+        },
+        methods: {
+            formatDateTime(dateTimeString) {
+                if (!dateTimeString) return '未知时间';
+                return new Date(dateTimeString).toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-');
+            },
 
-        /**
-         * Fetch and render all comments for the post
-         * (NOTE: Assumes a backend endpoint GET /comments?postId={id} exists)
-         */
-        async function fetchAndRenderComments() {
-            const commentsListEl = document.getElementById('comments-list');
-            try {
-                const response = await axios.get('/comments', { params: { postId: postId } });
-                const comments = response.data || [];
+            async fetchCurrentUser() {
+                try {
+                    const response = await axios.get('/user/info');
+                    this.currentUser = response.data.data;
+                } catch (error) {
+                    console.warn('获取当前用户信息失败，将无法发表评论。', error.message);
+                }
+            },
 
-                commentsListEl.innerHTML = ''; // Clear old comments
-                if (comments.length === 0) {
-                    commentsListEl.innerHTML = '<p>还没有评论，快来抢占沙发吧！</p>';
+            async fetchPostDetails() {
+                try {
+                    const response = await axios.get('/post/select', { params: { id: this.postId } });
+                    if (!response.data || !response.data.data.postId) {
+                        throw new Error('未找到该帖子或帖子数据格式不正确');
+                    }
+                    this.post = response.data.data;
+                } catch (error) {
+                    console.error('加载帖子详情失败:', error);
+                    this.error = `加载帖子详情失败: ${error.message}`;
+                } finally {
+                    this.isLoading.details = false;
+                    this.isLoading.image = false;
+                }
+            },
+
+
+
+            async fetchAndRenderComments() {
+                this.isLoading.comments = true;
+                try {
+                    const response = await axios.get('/comment/get', { params: { postId: this.postId } });
+                    // 假设评论数据在 response.data.data
+                    this.comments = response.data.data || [];
+                } catch (error) {
+                    console.error('加载评论失败:', error);
+                } finally {
+                    this.isLoading.comments = false;
+                }
+            },
+
+            async handleCommentSubmit() {
+                if (!this.newComment.content.trim()) {
+                    this.commentStatus = { message: '评论内容不能为空！', type: 'error' };
+                    return;
+                }
+                if (!this.currentUser) {
+                    this.commentStatus = { message: '请先登录！', type: 'error' };
                     return;
                 }
 
-                comments.forEach(comment => {
-                    const item = document.createElement('div');
-                    item.className = 'comment-item';
-                    item.innerHTML = `
-                        <div class="comment-author">用户ID: ${comment.authorId}</div>
-                        <div class="comment-content">${comment.content}</div>
-                        <div class="comment-time">${formatDateTime(comment.createTime)}</div>
-                    `;
-                    commentsListEl.appendChild(item);
-                });
-            } catch (error) {
-                commentsListEl.innerHTML = '<p style="color: red;">评论加载失败。</p>';
-                console.error('加载评论失败', error);
-            }
+                this.isSubmitting = true;
+                this.commentStatus = { message: '正在发布...', type: 'info' };
+
+                try {
+                    const payload = {
+                        content: this.newComment.content,
+                        authorId: this.currentUser.userId, // 从已获取的用户信息中取ID
+                        postId: this.postId,
+                    };
+                    await axios.post('/comment/add', payload);
+
+                    this.commentStatus = { message: '发布成功！', type: 'success' };
+                    this.newComment.content = '';
+                    await this.fetchAndRenderComments();
+
+                } catch (error) {
+                    const errorMessage = error.response?.data?.message || error.message;
+                    this.commentStatus = { message: `发布失败: ${errorMessage}`, type: 'error' };
+                } finally {
+                    this.isSubmitting = false;
+                }
+            },
+
+            async initializePage() {
+                const urlParams = new URLSearchParams(window.location.search);
+                this.postId = urlParams.get('id');
+
+                if (!this.postId) {
+                    this.error = '错误：URL中未提供帖子ID。';
+                    this.isLoading.details = false;
+                    this.isLoading.image = false;
+                    this.isLoading.comments = false;
+                    return;
+                }
+
+                await Promise.all([
+                    this.fetchCurrentUser(),
+                    this.fetchPostDetails(),
+                    this.fetchAndRenderComments(),
+                ]);
+            },
+        },
+        created() {
+            this.initializePage();
         }
-
-        /**
-         * Handle the submission of a new comment
-         */
-        async function handleCommentSubmit(event) {
-            event.preventDefault();
-            const content = commentContentEl.value.trim();
-            if (!content) {
-                commentStatusEl.textContent = '评论内容不能为空！';
-                commentStatusEl.style.color = 'red';
-                return;
-            }
-
-            submitBtn.disabled = true;
-            commentStatusEl.textContent = '正在发布...';
-            commentStatusEl.style.color = 'blue';
-
-            try {
-                // Prepare data for POST request according to your Java DTO
-                const payload = {
-                    content: content,
-                    authorId: currentUserId,
-                    postId: postId,
-                };
-
-                await axios.post('/comments', payload);
-
-                commentStatusEl.textContent = '发布成功！';
-                commentStatusEl.style.color = 'green';
-                commentContentEl.value = ''; // Clear textarea
-
-                // Refresh the comments list to show the new one
-                await fetchAndRenderComments();
-
-            } catch (error) {
-                commentStatusEl.textContent = `发布失败: ${error.response ? error.response.data.message : error.message}`;
-                commentStatusEl.style.color = 'red';
-            } finally {
-                submitBtn.disabled = false;
-            }
-        }
-
-        // --- MAIN EXECUTION LOGIC ---
-        async function initializePage() {
-            const urlParams = new URLSearchParams(window.location.search);
-            postId = urlParams.get('id');
-
-            if (!postId) {
-                loadingIndicatorEl.style.display = 'none';
-                errorMessageEl.style.display = 'block';
-                errorMessageEl.textContent = '错误：URL中未提供帖子ID。';
-                return;
-            }
-
-            try {
-                postDetailsEl.style.display = 'none';
-                await fetchCurrentUser(); // Fetch user first
-                await fetchPostDetails();
-                await fetchAndRenderComments();
-
-                // Everything loaded successfully, show content and hide loaders
-                loadingIndicatorEl.style.display = 'none';
-                postDetailsEl.style.display = 'block';
-
-                // Attach form submission event listener only after everything is loaded
-                commentForm.addEventListener('submit', handleCommentSubmit);
-
-            } catch (error) {
-                loadingIndicatorEl.style.display = 'none';
-                errorMessageEl.style.display = 'block';
-                errorMessageEl.textContent = error.message;
-            }
-        }
-
-        // Run the app!
-        initializePage();
     });
 </script>
 

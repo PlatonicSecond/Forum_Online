@@ -1,10 +1,9 @@
 package cn.heap.forum.service.impl;
 
 import cn.heap.forum.mapper.PostMapper;
-import cn.heap.forum.pojo.Post;
+import cn.heap.forum.pojo.PlatePostDTO;
 import cn.heap.forum.pojo.PostDTO;
 import cn.heap.forum.service.PostService;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +15,8 @@ public class PostServiceImpl implements PostService {
     private PostMapper postMapper;
 
     @Override
-    public List<Post> selectAll(int id){
-        QueryWrapper queryWrapper = new QueryWrapper();
-        queryWrapper.eq("post_id", id);
-        return postMapper.selectList(queryWrapper);
+    public List<PlatePostDTO> select(int id){
+        return postMapper.select(id);
     }
 
     @Override

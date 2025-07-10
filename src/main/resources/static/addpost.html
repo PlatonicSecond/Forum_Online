@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>发布新帖子</title>
+    <style>
+        /* 基础和布局样式 */
+        body {
+            background-color: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #app {
+            display: flex; /* 1. 开启Flexbox布局，实现左右分栏 */
+            gap: 20px;     /* 2. 左右两栏的间距 */
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 24px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 左侧：图片上传区域 */
+        .image-uploader {
+            flex-basis: 300px; /* 固定左侧宽度 */
+            flex-shrink: 0;
+            height: 400px;
+            border: 2px dashed #d9d9d9;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            overflow: hidden; /* 隐藏超出部分的图片 */
+            position: relative; /* 为预览图片定位 */
+        }
+
+        .image-uploader:hover {
+            border-color: #1890ff;
+        }
+
+        .uploader-placeholder {
+            text-align: center;
+            color: #888;
+        }
+
+        .plus-icon {
+            font-size: 48px;
+            color: #d9d9d9;
+            margin-bottom: 8px;
+        }
+
+        .image-preview {
+            width: 100%;
+            height: 100%;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 图片填充整个容器，不变形 */
+        }
+
+        /* 右侧：表单字段 */
+        .form-fields {
+            flex: 1; /* 占据剩余的所有空间 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-fields input,
+        .form-fields textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box; /* 让padding不影响宽度 */
+            transition: border-color 0.3s;
+        }
+
+        .form-fields input:focus,
+        .form-fields textarea:focus {
+            border-color: #1890ff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+
+        .form-fields textarea {
+            height: 190px;
+            resize: vertical; /* 只允许垂直方向缩放 */
+            font-family: inherit;
+        }
+
+        .submit-button {
+            margin-top: auto; /* 将按钮推到底部 */
+            padding: 12px 20px;
+            border: none;
+            background-color: #1890ff;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .submit-button:hover {
+            background-color: #40a9ff;
+        }
+    </style>
+</head>
+<body>
+
+<!-- id="app" 现在包裹整个布局 -->
+<div id="app">
+
+    <!-- 左侧上传区域 -->
+    <div class="image-uploader" @click="triggerFileInput">
+        <!-- 如果没有预览图，显示加号和提示文字 -->
+        <div v-if="!imagePreviewUrl" class="uploader-placeholder">
+            <div class="plus-icon">+</div>
+            <div>点击选择文件</div>
+        </div>
+        <!-- 如果有预览图，显示图片 -->
+        <div v-else class="image-preview">
+            <img :src="imagePreviewUrl" alt="图片预览">
+        </div>
+    </div>
+
+    <!-- 隐藏的文件输入框，通过ref引用 -->
+    <input type="file" ref="fileInput" @change="handleFileChange" accept="image/*" style="display: none;">
+
+    <!-- 右侧表单字段，用一个form标签包裹以方便提交 -->
+    <form class="form-fields" @submit.prevent="submitForm">
+        <input type="text" v-model="form.title" placeholder="请填写标题" required>
+        <textarea v-model="form.content" placeholder="请填写正文内容..." required></textarea>
+        <button type="submit" class="submit-button">发布帖子</button>
+    </form>
+</div>
+
+<script src="js/vue.js"></script>
+<script src="js/axios.min.js"></script>
+<script>
+    // Axios 基础配置 (可选)
+    axios.defaults.baseURL = 'http://localhost:8080';
+    axios.defaults.withCredentials = true;
+
+    // 这个函数会在每次发送请求之前被调用
+    axios.interceptors.request.use(
+      config => {
+
+        const token = localStorage.getItem('token');
+
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      error => {
+        return Promise.reject(error);
+      }
+    );
+
+    new Vue({
+      el: '#app',
+      data: {
+        // 表单数据
+        form: {
+          title: '',
+          content: '',
+          file: null
+        },
+        // 用于图片预览的URL
+        imagePreviewUrl: ''
+      },
+      methods: {
+        // 触发隐藏的文件输入框的点击事件
+        triggerFileInput() {
+          // this.$refs.fileInput 会获取到 <input ref="fileInput"> 这个DOM元素
+          this.$refs.fileInput.click();
+        },
+
+        // 当用户选择了文件后
+        handleFileChange(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+
+          // 1. 将文件对象保存到 data 中
+          this.form.file = file;
+
+          // 2. 生成一个临时的URL用于图片预览
+          this.imagePreviewUrl = URL.createObjectURL(file);
+        },
+
+        // 异步提交表单
+        async submitForm() {
+          // 基础验证
+          if (!this.form.title || !this.form.content || !this.form.file) {
+            alert('请填写所有字段并选择一张图片！');
+            return;
+        }
+
+        // 创建 FormData 对象以发送文件
+        const formData = new FormData();
+        formData.append('title', this.form.title);
+        formData.append('content', this.form.content);
+        formData.append('file', this.form.file);
+
+          try {
+            // 发送POST请求
+            const response = await axios.post('post/add', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            });
+
+            // 处理后端响应
+            if (response.data.code === 200) {
+              alert('帖子发布成功！');
+              this.resetForm(); // 发布成功后清空表单
+            } else {
+              alert('发布失败: ' + (response.data.message || '未知错误'));
+          }
+
+          } catch (error) {
+            console.error('发布失败:', error);
+            alert('网络请求错误，请稍后重试。');
+          }
+        },
+
+        // 清空表单和预览
+        resetForm() {
+            this.form.title = '';
+            this.form.content = '';
+            this.form.file = null;
+            this.imagePreviewUrl = '';
+            // 清空隐藏的input的值，以便可以再次选择相同的文件
+            this.$refs.fileInput.value = '';
+        }
+      }
+    });
+</script>
+</body>
+</html>

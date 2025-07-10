@@ -1,5 +1,6 @@
 package cn.heap.forum.controller;
 
+import cn.heap.forum.pojo.PlatePostDTO;
 import cn.heap.forum.pojo.Post;
 import cn.heap.forum.pojo.PostDTO;
 import cn.heap.forum.service.PostService;
@@ -8,6 +9,7 @@ import cn.heap.forum.util.UserContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.*;
@@ -32,16 +34,22 @@ public class PostController {
 
     @GetMapping("/select")
     @ApiParam("寻找plateId对应的post")
-    public ServerResult<List<Post>> selectAll(int id){
-        return ServerResult.success(postService.selectAll(id));
+    public ServerResult<List<PlatePostDTO>> select(int id){
+        return ServerResult.success(postService.select(id));
     }
 
     @PostMapping(value = "/add", consumes = "multipart/form-data")
     @ApiOperation(value = "创建帖子", notes = "用户创建新帖子")
-    public ServerResult<Void> add(@RequestBody PostDTO post, MultipartFile file) {
+    public ServerResult<Void> add(    @RequestParam("title") String title,
+                                      @RequestParam("content") String content,
+                                      @RequestParam("file") MultipartFile file) {
         try {
+            PostDTO post=new PostDTO();
+            post.setTitle(title);
+            post.setContent(content);
             // 从ThreadLocal获取当前登录用户信息
             Integer currentUserId = UserContext.getCurrentUserId();
+            Integer roleId= UserContext.getCurrentUserRoleId();
 
             if (currentUserId == null) {
                 return ServerResult.error(401, "用户未登录");
@@ -61,6 +69,10 @@ public class PostController {
             post.setAuthorId(currentUserId);
             post.setViewCount(0);
             post.setCreateTime(LocalDateTime.now());
+            if(roleId == 1)
+                post.setPlateId(1);
+            else
+                post.setPlateId(2);
 
             String imageUrl = "/images/png_for_post/" + fileName;
             post.setImgPath(imageUrl);
