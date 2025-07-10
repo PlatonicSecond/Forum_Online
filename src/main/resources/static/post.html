@@ -172,15 +172,17 @@
             async fetchAndRenderComments() {
                 this.isLoading.comments = true;
                 try {
-                    const response = await axios.get('/comments/get', { params: { postId: this.postId } });
-                    // 假设评论数据在 response.data.data
+                    // 修改为路径参数形式
+                    const response = await axios.get(`/comments/post/${this.postId}`);
                     this.comments = response.data.data || [];
                 } catch (error) {
                     console.error('加载评论失败:', error);
+                    this.error = '评论加载失败，请刷新重试';
                 } finally {
                     this.isLoading.comments = false;
                 }
             },
+
 
             async handleCommentSubmit() {
                 if (!this.newComment.content.trim()) {
@@ -197,11 +199,11 @@
 
                 try {
                     const payload = {
-                        content: this.newComment.content,
-                        authorId: this.currentUser.userId, // 从已获取的用户信息中取ID
+                        content: this.newComment.content.trim(),
+                        authorId: this.currentUser.userId, // 确认与后端 Comment.authorId 字段对应
                         postId: this.postId,
                     };
-                    await axios.post('/comments/add', payload);
+                    await axios.post('/comments/insert', payload);
 
                     this.commentStatus = { message: '发布成功！', type: 'success' };
                     this.newComment.content = '';

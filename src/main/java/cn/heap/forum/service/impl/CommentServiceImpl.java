@@ -53,6 +53,17 @@ public class CommentServiceImpl implements CommentService {
         }
     }
 
+    @Override
+    public Comment getCommentById(Integer authorId) {
+        try{
+            return commentMapper.selectById(authorId);
+        } catch (Exception e){
+            logger.error("查询评论信息异常: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     /**
      * 更新评论
      *
