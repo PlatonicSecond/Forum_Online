@@ -12,4 +12,6 @@ public interface CommentService {
     int updateComment(Comment comment);
     // 查询某个帖子下的所有评论
     List<Comment> getCommentsByPostId(Integer postId);
+
+    Comment getCommentById(Integer authorId);
 }

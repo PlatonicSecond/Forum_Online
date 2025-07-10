@@ -205,7 +205,6 @@
                 <i class="el-icon-loading"></i>
             </div>
             <el-row v-else :gutter="15">
-                <!-- 修复了瀑布流布局的偏移量计算，使其更通用 -->
                 <el-col :span="24 / columns.length" v-for="(column, colIndex) in columns" :key="colIndex">
                     <el-card v-for="card in column" :key="card.postId" class="post-card" :body-style="{ padding: '0px' }" @click.native="openPostDialog(card)">
                         <div v-if="card.imgPath" style="position: relative;">
