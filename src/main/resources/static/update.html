@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>编辑帖子</title> <!-- 标题已更改 -->
+    <style>
+        /* 样式与 addpost.html 完全相同，此处省略以节省空间 */
+        body { background-color: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; padding: 20px; }
+        #app { display: flex; gap: 20px; max-width: 900px; margin: 40px auto; padding: 24px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .image-uploader { flex-basis: 300px; flex-shrink: 0; height: 400px; border: 2px dashed #d9d9d9; border-radius: 8px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: border-color 0.3s; overflow: hidden; position: relative; }
+        .image-uploader:hover { border-color: #1890ff; }
+        .uploader-placeholder { text-align: center; color: #888; }
+        .plus-icon { font-size: 48px; color: #d9d9d9; margin-bottom: 8px; }
+        .image-preview { width: 100%; height: 100%; }
+        .image-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .form-fields { flex: 1; display: flex; flex-direction: column; }
+        .form-fields input, .form-fields textarea { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 16px; box-sizing: border-box; transition: border-color 0.3s; }
+        .form-fields input:focus, .form-fields textarea:focus { border-color: #1890ff; outline: none; box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2); }
+        .form-fields textarea { height: 190px; resize: vertical; font-family: inherit; }
+        .submit-button { margin-top: auto; padding: 12px 20px; border: none; background-color: #1890ff; color: white; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; transition: background-color 0.3s; }
+        .submit-button:hover { background-color: #40a9ff; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- 左侧上传区域 (逻辑不变) -->
+    <div class="image-uploader" @click="triggerFileInput">
+        <div v-if="!imagePreviewUrl" class="uploader-placeholder">
+            <div class="plus-icon">+</div>
+            <div>点击更换图片</div>
+        </div>
+        <div v-else class="image-preview">
+            <img :src="imagePreviewUrl" alt="图片预览">
+        </div>
+    </div>
+
+    <!-- 隐藏的文件输入框 (逻辑不变) -->
+    <input type="file" ref="fileInput" @change="handleFileChange" accept="image/*" style="display: none;">
+
+    <!-- 右侧表单字段 -->
+    <form class="form-fields" @submit.prevent="submitForm">
+        <input type="text" v-model="form.title" placeholder="请填写标题" required>
+        <textarea v-model="form.content" placeholder="请填写正文内容..." required></textarea>
+        <button type="submit" class="submit-button">更新帖子</button> <!-- 按钮文本已更改 -->
+    </form>
+</div>
+
+<script src="js/vue.js"></script>
+<script src="js/axios.min.js"></script>
+<script>
+    // Axios 基础配置 (不变)
+    axios.defaults.baseURL = 'http://localhost:8080';
+    axios.defaults.withCredentials = true;
+    axios.interceptors.request.use(
+      config => {
+        const token = localStorage.getItem('token');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      error => Promise.reject(error)
+    );
+
+    new Vue({
+      el: '#app',
+      data: {
+        postId: null, // <<< 新增：用于存储要更新的帖子ID
+        form: {
+          title: '',
+          content: '',
+          file: null // 'file' 初始为null，代表用户还未选择新文件
+        },
+        imagePreviewUrl: '',
+        imageBaseUrl: 'http://localhost:8080/images/' // <<< 新增：用于拼接相对路径
+      },
+      // <<< 新增：created生命周期钩子，在页面加载时执行
+      created() {
+        // 1. 从URL中获取帖子ID
+        const params = new URLSearchParams(window.location.search);
+        this.postId = params.get('id');
+
+        if (this.postId) {
+          // 2. 如果有ID，就去获取帖子数据
+          this.fetchPostData();
+        } else {
+          alert('无效的帖子ID，无法编辑！');
+          // 可以在这里关闭窗口
+        }
+      },
+      methods: {
+        // <<< 新增：获取现有帖子数据的方法
+        async fetchPostData() {
+          try {
+            const response = await axios.get('/post/select', { params: { id: this.postId } });
+            if (response.data.code === 200) {
+              const post = response.data.data;
+              // 填充表单
+              this.form.title = post.title;
+              this.form.content = post.content;
+
+              // 处理并显示现有图片
+              if (post.imgPath) {
+                if (post.imgPath.startsWith('http')) {
+                  this.imagePreviewUrl = post.imgPath;
+                } else {
+                  this.imagePreviewUrl = this.imageBaseUrl + post.imgPath;
+                }
+              }
+            } else {
+              alert('获取帖子数据失败: ' + response.data.message);
+            }
+          } catch (error) {
+            console.error('获取帖子数据失败:', error);
+            alert('网络错误，无法加载帖子数据。');
+          }
+        },
+
+        triggerFileInput() {
+          this.$refs.fileInput.click();
+        },
+
+        handleFileChange(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+          this.form.file = file;
+          this.imagePreviewUrl = URL.createObjectURL(file);
+        },
+
+        // <<< 修改：提交表单的逻辑已完全更新
+        async submitForm() {
+          // 基础验证（注意：更新时不强制要求必须有图片）
+          if (!this.form.title || !this.form.content) {
+            alert('标题和内容不能为空！');
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append('id', this.postId); // <<< 必须发送帖子ID
+          formData.append('title', this.form.title);
+          formData.append('content', this.form.content);
+
+          // <<< 关键：只有当用户选择了新文件时，才将其添加到formData中
+          if (this.form.file) {
+            formData.append('file', this.form.file);
+          }
+
+          try {
+            // 发送POST请求到新的/post/update接口
+            const response = await axios.post('/post/update', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            });
+
+            if (response.data.code === 200) {
+              alert('帖子更新成功！');
+              if (window.parent && typeof window.parent.closePostDialog === 'function') {
+                window.parent.closePostDialog(true); // 调用父页面函数，并告诉它需要刷新
+              }
+            } else {
+              alert('更新失败: ' + (response.data.message || '未知错误'));
+            }
+
+          } catch (error) {
+            console.error('更新失败:', error);
+            alert('网络请求错误，请稍后重试。');
+          }
+        }
+      }
+    });
+</script>
+</body>
+</html>

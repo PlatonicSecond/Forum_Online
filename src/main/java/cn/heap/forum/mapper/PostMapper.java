@@ -4,10 +4,7 @@ import cn.heap.forum.pojo.Post;
 import cn.heap.forum.pojo.PostDTO;
 import cn.heap.forum.pojo.PostResultDTO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -22,4 +19,7 @@ public interface PostMapper extends BaseMapper<Post> {
 
     @Select("select p.*, u.username, u.avatar_path from post p join user u on u.user_id = p.author_id where post_id=#{id}")
     List<PostResultDTO> select(int id);
+
+    @Update("update post set title=#{title},img_path=#{imgPath},content=#{content},update_time=#{updateTime} where post_id=#{postId}")
+    void update(Post post);
 }
