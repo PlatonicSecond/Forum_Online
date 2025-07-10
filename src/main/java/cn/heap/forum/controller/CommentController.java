@@ -24,45 +24,11 @@ public class CommentController {
     public ServerResult<Integer> addComment(@RequestBody Comment comment) {
         int result = commentService.addComment(comment);
         if (result > 0) {
+            // 广播新评论
             messagingTemplate.convertAndSend("/topic/comments", comment);
             return ServerResult.success(result);
         } else {
             return ServerResult.error(500, "添加评论失败");
-        }
-    }
-
-    // 删除评论
-    @DeleteMapping("/{commentId}")
-    public ServerResult<Integer> deleteComment(@PathVariable Integer commentId) {
-        int result = commentService.deleteComment(commentId);
-        if (result > 0) {
-            // 可以在这里广播删除消息
-            return ServerResult.success(result);
-        } else {
-            return ServerResult.error(500, "删除评论失败");
-        }
-    }
-
-    // 修改评论
-    @PutMapping
-    public ServerResult<Integer> updateComment(@RequestBody Comment comment) {
-        int result = commentService.updateComment(comment);
-        if (result > 0) {
-            // 可以在这里广播修改消息
-            return ServerResult.success(result);
-        } else {
-            return ServerResult.error(500, "修改评论失败");
-        }
-    }
-
-    // 根据评论的用户ID查询评论
-    @GetMapping("/{authorId}")
-    public ServerResult<Comment> getCommentById(@PathVariable Integer authorId) {
-        Comment comment = commentService.getCommentById(authorId);
-        if (comment != null) {
-            return ServerResult.success(comment);
-        } else {
-            return ServerResult.error(404, "评论不存在");
         }
     }
 
@@ -73,14 +39,4 @@ public class CommentController {
         return ServerResult.success(comments);
     }
 
-    @PostMapping("/reply")
-    public ServerResult<Comment> replyComment(@RequestBody Comment comment) {
-        Comment newComment = commentService.replyComment(comment);
-        if (newComment != null) {
-            messagingTemplate.convertAndSend("/topic/comments", newComment);
-            return ServerResult.success(newComment);
-        } else {
-            return ServerResult.error(500, "回复失败");
-        }
-    }
 }
