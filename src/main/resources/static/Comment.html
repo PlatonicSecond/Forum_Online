@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>帖子评论</title>
+    <script src="/js/sockjs.min.js"></script>
+    <script src="/js/stomp.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<h2>发表新评论</h2>
+<form id="commentForm">
+    <textarea id="content" placeholder="写下你的评论..." required></textarea><br>
+    <input type="hidden" id="postId" value="1"> <!-- 假设当前帖子ID为1 -->
+    <button type="submit">提交评论</button>
+</form>
+
+<h2>所有评论</h2>
+<div id="comments"></div>
+
+<script>
+$(document).ready(function () {
+    // 初始化 WebSocket 连接
+    var socket = new SockJS('/ws');
+    var stompClient = Stomp.over(socket);
+    
+    stompClient.connect({}, function (frame) {
+        console.log('Connected: ' + frame);
+        // 订阅 /topic/comments 主题
+        stompClient.subscribe('/topic/comments', function (comment) {
+            showComment(JSON.parse(comment.body));
+        });
+    });
+
+    // 发送评论
+    $('#commentForm').submit(function (e) {
+        e.preventDefault();
+        var content = $('#content').val();
+        var postId = $('#postId').val();
+        
+        if (content.trim() === '') return;
+
+        stompClient.send("/app/addComment", {}, JSON.stringify({
+            'content': content,
+            'authorId': 1, // 当前登录用户的 ID，应动态获取
+            'postId': postId
+        }));
+
+        $('#content').val('');
+    });
+
+    // 展示评论
+    function showComment(comment) {
+        $("#comments").append(
+            "<div><strong>" + comment.authorId + "</strong>: " + comment.content + "</div>"
+        );
+    }
+});
+</script>
+
+</body>
+</html>
