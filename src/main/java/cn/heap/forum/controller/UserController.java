@@ -38,9 +38,9 @@ public class UserController {
                 return ServerResult.error(400, "登录信息不能为空");
             }
 
-//            System.out.println("📝 登录请求信息:");
-//            System.out.println("  - 用户名: " + loginRequest.getUsername());
-//            System.out.println("  - 密码: " + loginRequest.getPassword());
+            System.out.println("📝 登录请求信息:");
+            System.out.println("  - 用户名: " + loginRequest.getUsername());
+            System.out.println("  - 密码: " + loginRequest.getPassword());
 
             if (loginRequest.getUsername() == null || loginRequest.getUsername().trim().isEmpty()) {
                 System.out.println("❌ 用户名为空");
