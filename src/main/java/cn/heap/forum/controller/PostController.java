@@ -3,19 +3,16 @@ package cn.heap.forum.controller;
 import cn.heap.forum.pojo.PlatePostDTO;
 import cn.heap.forum.pojo.Post;
 import cn.heap.forum.pojo.PostDTO;
+import cn.heap.forum.pojo.PostResultDTO;
 import cn.heap.forum.service.PostService;
 import cn.heap.forum.util.ServerResult;
 import cn.heap.forum.util.UserContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.*;
-import org.apache.commons.io.FileUtils;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,7 +31,7 @@ public class PostController {
 
     @GetMapping("/select")
     @ApiParam("寻找plateId对应的post")
-    public ServerResult<List<PlatePostDTO>> select(int id){
+    public ServerResult<List<PostResultDTO>> select(int id){
         return ServerResult.success(postService.select(id));
     }
 
@@ -94,18 +91,6 @@ public class PostController {
             return ServerResult.success();
         } catch (Exception e) {
             return ServerResult.error(501, e.getMessage());
-        }
-    }
-
-    // 修改后：根据postId查询单个帖子详情
-    @GetMapping("/detail") // 新接口：查询单个帖子详情
-    @ApiOperation("根据ID查询帖子详情")
-    public ServerResult<Post> getPostById(@RequestParam Integer postId) {
-        Post post = postService.getPostById(postId); // 需要在PostService中实现该方法
-        if (post != null) {
-            return ServerResult.success(post);
-        } else {
-            return ServerResult.error(404, "帖子不存在");
         }
     }
 

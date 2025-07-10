@@ -307,8 +307,8 @@
             },
 
             openPostDialog(card) {
-                console.log('准备打开帖子详情, ID:', card.id);
-                this.postUrl = `post.html?id=${card.id}`;
+                console.log('准备打开帖子详情, ID:', card.postId);
+                this.postUrl = `post.html?id=${card.postId}`;
                 this.dialogVisible = true;
             },
 

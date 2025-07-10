@@ -106,7 +106,7 @@
         },
         computed: {
             postImageSrc() {
-                return this.post.imgPath ? `/imgs/${this.post.imgPath}` : '';
+                return this.post.imgPath ? `${this.post.imgPath}` : '';
             },
             formattedCreateTime() {
                 return this.formatDateTime(this.post.createTime);
@@ -126,17 +126,29 @@
                     const response = await axios.get('/user/info');
                     this.currentUser = response.data.data;
                 } catch (error) {
-                    console.warn('获取当前用户信息失败，将无法发表评论。', error.message);
+                    console.warn('获取当前用户信息失败，将无法发表评论。', error.Message);
                 }
             },
 
             async fetchPostDetails() {
                 try {
                     const response = await axios.get('/post/select', { params: { id: this.postId } });
-                    if (!response.data || !response.data.data.postId) {
+                    console.log(response.data);
+                    const postDataArray = response.data.data;
+
+                    if (!postDataArray || postDataArray.length === 0) {
                         throw new Error('未找到该帖子或帖子数据格式不正确');
                     }
-                    this.post = response.data.data;
+
+                    const postObject = postDataArray[0];
+                    console.log(response.data.data);
+
+                    // 现在基于正确的 postObject 进行判断
+                    if (!postObject || !postObject.postId) {
+                        throw new Error('帖子数据格式不正确');
+                    }
+
+                    this.post = postObject;
                 } catch (error) {
                     console.error('加载帖子详情失败:', error);
                     this.error = `加载帖子详情失败: ${error.message}`;
@@ -151,7 +163,7 @@
             async fetchAndRenderComments() {
                 this.isLoading.comments = true;
                 try {
-                    const response = await axios.get('/comment/get', { params: { postId: this.postId } });
+                    const response = await axios.get('/comments/get', { params: { postId: this.postId } });
                     // 假设评论数据在 response.data.data
                     this.comments = response.data.data || [];
                 } catch (error) {
