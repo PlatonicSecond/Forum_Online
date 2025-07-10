@@ -5,9 +5,105 @@
     <title>帖子详情</title>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <style>
-        /* 帖子详情样式 */
-        .comments-section h2 {
+        /* ========== Layout ========== */
+        /* Lock the viewport to prevent whole page scrolling */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden; /* CRITICAL: Prevents the body from scrolling */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f0f2f5;
+        }
+
+        .post-layout {
+            display: flex;
+            height: 100%;
+        }
+
+        .left-column {
+            flex: 0 0 60%; /* Left column takes 60% of the width */
+            background-color: #000;
+            position: relative;
+        }
+
+        .right-column {
+            flex: 1; /* Right column takes the remaining space */
+            padding: 40px;
+            box-sizing: border-box;
+            overflow-y: auto; /* CRITICAL: Makes this column scrollable */
+            background-color: #fff;
+        }
+
+        /* ========== Left Column (Image) ========== */
+        #post-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* 'contain' fits the whole image, 'cover' fills the space */
+        }
+
+        .image-loading, .image-error {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            color: #ccc;
+            font-size: 20px;
+        }
+
+        /* ========== Right Column (Content & Comments) ========== */
+        .post-info h1 {
+            font-size: 32px;
+            margin-top: 0;
             margin-bottom: 15px;
+            color: #1a1a1a;
+        }
+
+        .post-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #e5e5e5;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .post-body {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #333;
+            padding-bottom: 40px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .post-body img { /* Style images inside the content */
+            max-width: 100%;
+            border-radius: 4px;
+        }
+
+        /* ========== Comments Section ========== */
+        .comments-section h2 {
+            margin-bottom: 20px;
+        }
+
+        #comments-list .comment-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        #comments-list .comment-item:last-child {
+            border-bottom: none;
+        }
+
+        .comment-author { font-weight: bold; margin-bottom: 5px; }
+        .comment-content { margin-bottom: 8px; }
+        .comment-time { font-size: 12px; color: #999; }
+
+        /* Comment Form */
+        #comment-form {
+            margin-top: 20px;
         }
         #comment-form textarea {
             width: 100%;
@@ -35,27 +131,15 @@
         #comment-form button:hover {
             background-color: #fde946;
         }
-        #comments-list {
-            margin-top: 20px;
+        #comment-form button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
         }
-        .comment-item {
-            padding: 15px 0;
-            border-bottom: 1px solid #f0f0f0;
+        #comment-status {
+            font-size: 14px;
+            margin-top: 10px;
         }
-        .comment-item:last-child {
-            border-bottom: none;
-        }
-        .comment-author {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .comment-content {
-            margin-bottom: 8px;
-        }
-        .comment-time {
-            font-size: 12px;
-            color: #999;
-        }
+
     </style>
 </head>
 <body>
@@ -84,109 +168,121 @@
             <!-- Container for comments -->
             <div class="comments-section">
                 <h2>评论区</h2>
-                <form id="comment-form">
-                    <textarea id="comment-content" required placeholder="请写下你的评论..."></textarea>
-                    <button type="submit" id="submit-comment-btn">发布</button>
-                </form>
                 <div id="comments-list">
                     <!-- Comments will be dynamically inserted here -->
                 </div>
+                <!-- Form for new comments -->
+                <form id="comment-form">
+                    <h3>发表评论</h3>
+                    <textarea id="comment-content" required placeholder="请留下你的评论..."></textarea>
+                    <button type="submit" id="submit-comment-btn">发布</button>
+                    <p id="comment-status"></p>
+                </form>
             </div>
         </div>
+
+        <!-- Overall Loading/Error for the right column -->
+        <div id="loading-indicator">正在加载...</div>
+        <div id="error-message" style="display: none;"></div>
+
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // 获取帖子ID（从URL参数中提取）
-        const urlParams = new URLSearchParams(window.location.search);
-        const postId = urlParams.get('id');
+    document.addEventListener('DOMContentLoaded', function() {
 
-        if (!postId) {
-            alert("无效的帖子ID");
-            return;
+        // --- STATE VARIABLES ---
+        let postId = 2;
+        let currentUserId = 1; // Store logged-in user's ID
+
+        // --- DOM ELEMENT REFERENCES ---
+        const postDetailsEl = document.getElementById('post-details');
+        const loadingIndicatorEl = document.getElementById('loading-indicator');
+        const errorMessageEl = document.getElementById('error-message');
+        const imageLoadingEl = document.getElementById('image-loading');
+
+        // Form elements
+        const commentForm = document.getElementById('comment-form');
+        const commentContentEl = document.getElementById('comment-content');
+        const submitBtn = document.getElementById('submit-comment-btn');
+        const commentStatusEl = document.getElementById('comment-status');
+
+
+        // --- HELPER FUNCTIONS ---
+        function formatDateTime(dateTimeString) {
+            if (!dateTimeString) return '未知时间';
+            // Handles both Date objects and "YYYY-MM-DDTHH:mm:ss" strings
+            return new Date(dateTimeString).toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-');
         }
 
-        // 获取当前用户ID（假设通过API或前端存储）
-        let currentUserId = null;
+        // --- API CALLS & RENDERING ---
 
-        // 获取帖子详情
+        /**
+         * Fetch info of the currently logged-in user
+         * Needed to know who is authoring the comment.
+         */
+        async function fetchCurrentUser() {
+            try {
+                const response = await axios.get('/user/info');
+                if (response.data && response.data.id) { // Assuming user object has an 'id'
+                    currentUserId = response.data.id;
+                }
+            } catch (error) {
+                console.warn('获取当前用户信息失败，将无法发表评论。', error.message);
+                commentContentEl.placeholder = '请先登录才能发表评论';
+                commentContentEl.disabled = true;
+                submitBtn.disabled = true;
+            }
+        }
+
+        /**
+         * Fetch main post details based on postId
+         */
         async function fetchPostDetails() {
             try {
-                const response = await axios.get('/post/select', { params: { id: postId } });
-                const post = response.data[0]; // 假设返回的是数组
+                // 调用新接口，参数为postId
+                const response = await axios.get('http://localhost:8080/post/detail', {
+                    params: { postId: postId }
+                });
+                // 假设ServerResult的结构是 { code: 200, data: {...}, ... }
+                if (response.data.code !== 200) {
+                    throw new Error(response.data.msg || '获取帖子失败');
+                }
+                const post = response.data.data; // 从data字段提取帖子对象
+                if (!post) throw new Error('未找到该帖子');
 
-                if (!post || !post.postId) throw new Error('未找到该帖子');
-
-                // 渲染帖子详情
-                document.getElementById('post-title').textContent = post.title;
-                document.getElementById('post-user').textContent = `👤 作者ID: ${post.authorId}`;
+                // 渲染帖子内容（修正字段映射错误）
+                document.getElementById('post-title').textContent = post.title; // 原代码漏了title渲染
+                document.getElementById('post-user').textContent = `👤 作者ID: ${post.authorId}`; // 修正字段：post.authorId
                 document.getElementById('post-time').textContent = `🕒 发布于: ${formatDateTime(post.createTime)}`;
-                document.getElementById('post-body').innerHTML = post.content;
+                document.getElementById('post-views').textContent = `👁️ 浏览: ${post.viewcount}`; // 注意实体类字段是viewcount（小写c）
+                document.getElementById('post-body').textContent = post.content; // 用textContent避免XSS风险
 
-                // 渲染图片
+                // 渲染图片（修正路径拼接）
                 const postImageEl = document.getElementById('post-image');
                 if (post.imgPath) {
-                    postImageEl.src = '/images/' + post.imgPath;
+                    // 后端静态资源映射为/images/**，直接拼接路径即可
+                    postImageEl.src = `http://localhost:8080${post.imgPath}`;
                     postImageEl.style.display = 'block';
                 }
-                document.getElementById('image-loading').style.display = 'none';
+                imageLoadingEl.style.display = 'none';
 
             } catch (error) {
-                alert('加载帖子失败');
-                console.error('加载帖子详情失败', error);
+                throw new Error(`加载帖子详情失败: ${error.message}`);
             }
         }
 
-        // 格式化时间
-        function formatDateTime(dateTimeString) {
-            const date = new Date(dateTimeString);
-            return date.toLocaleString();
-        }
-
-        // 提交评论
-        async function handleCommentSubmit(event) {
-            event.preventDefault();
-            const content = document.getElementById('comment-content').value.trim();
-
-            if (!content) {
-                alert("请输入评论内容！");
-                return;
-            }
-
-            try {
-                // 获取当前用户信息（模拟登录状态）
-                currentUserId = 1; // 应替换为真实的用户ID
-
-                const payload = {
-                    content: content,
-                    authorId: currentUserId,
-                    postId: parseInt(postId)
-                };
-
-                // 发送POST请求
-                await axios.post('/comments', payload);
-
-                // 成功后刷新评论列表
-                fetchAndRenderComments();
-
-                // 清空输入框
-                document.getElementById('comment-content').value = '';
-            } catch (error) {
-                alert("评论提交失败，请重试");
-                console.error('发布评论失败:', error);
-            }
-        }
-
-        // 获取并渲染评论
+        /**
+         * Fetch and render all comments for the post
+         * (NOTE: Assumes a backend endpoint GET /comments?postId={id} exists)
+         */
         async function fetchAndRenderComments() {
+            const commentsListEl = document.getElementById('comments-list');
             try {
-                const response = await axios.get('/comments/post/' + postId);
-                const comments = response.data;
+                const response = await axios.get('/comments', { params: { postId: postId } });
+                const comments = response.data || [];
 
-                const commentsListEl = document.getElementById('comments-list');
-                commentsListEl.innerHTML = '';
-
+                commentsListEl.innerHTML = ''; // Clear old comments
                 if (comments.length === 0) {
                     commentsListEl.innerHTML = '<p>还没有评论，快来抢占沙发吧！</p>';
                     return;
@@ -202,28 +298,125 @@
                     `;
                     commentsListEl.appendChild(item);
                 });
-
             } catch (error) {
+                commentsListEl.innerHTML = '<p style="color: red;">评论加载失败。</p>';
                 console.error('加载评论失败', error);
-                document.getElementById('comments-list').innerHTML = '<p style="color: red;">评论加载失败。</p>';
             }
         }
 
-        // 初始化页面
-        async function initializePage() {
+        /**
+         * Handle the submission of a new comment
+         */
+        async function handleCommentSubmit(event) {
+            event.preventDefault();
+            const content = commentContentEl.value.trim();
+            if (!content) {
+                commentStatusEl.textContent = '评论内容不能为空！';
+                commentStatusEl.style.color = 'red';
+                return;
+            }
+
+            submitBtn.disabled = true;
+            commentStatusEl.textContent = '正在发布...';
+            commentStatusEl.style.color = 'blue';
+
             try {
-                await fetchPostDetails(); // 加载帖子详情
-                await fetchAndRenderComments(); // 加载评论
+                // Prepare data for POST request according to your Java DTO
+                const payload = {
+                    content: content,
+                    authorId: currentUserId,
+                    postId: postId,
+                };
 
-                // 添加表单提交事件监听
-                document.getElementById('comment-form').addEventListener('submit', handleCommentSubmit);
+                const response = await axios.post('http://localhost:8080/comments', payload);
+
+                if (response.data.code === 200) {
+                    commentStatusEl.textContent = '发布成功！';
+                    commentStatusEl.style.color = 'green';
+                    commentContentEl.value = '';
+                    // 重新加载评论列表
+                    await fetchAndRenderComments();
+                } else {
+                    throw new Error(response.data.msg || '发布失败');
+                }
             } catch (error) {
-                console.error('初始化失败', error);
+                commentStatusEl.textContent = `发布失败: ${error.message}`;
+                commentStatusEl.style.color = 'red';
+            } finally {
+                submitBtn.disabled = false;
             }
         }
 
-        initializePage();
+
+        // --- MAIN EXECUTION LOGIC ---
+        async function initializePage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            postId = urlParams.get('id');
+
+            if (!postId) {
+                loadingIndicatorEl.style.display = 'none';
+                errorMessageEl.style.display = 'block';
+                errorMessageEl.textContent = '错误：URL中未提供帖子ID。';
+                return;
+            }
+
+            try {
+                postDetailsEl.style.display = 'none';
+                await fetchCurrentUser(); // Fetch user first
+                await fetchPostDetails();
+                await fetchAndRenderComments();
+
+                // Everything loaded successfully, show content and hide loaders
+                loadingIndicatorEl.style.display = 'none';
+                postDetailsEl.style.display = 'block';
+
+                // Attach form submission event listener only after everything is loaded
+                commentForm.addEventListener('submit', handleCommentSubmit);
+
+            } catch (error) {
+                loadingIndicatorEl.style.display = 'none';
+                errorMessageEl.style.display = 'block';
+                errorMessageEl.textContent = error.message;
+            }
+        }
+
+        // Run the app!
+        // initializePage();
+
+        // 修改 initializePage 函数
+        async function initializePage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            postId = urlParams.get('id'); // 从URL参数（?id=xxx）获取postId
+
+            if (!postId || isNaN(postId)) { // 校验postId是否有效
+                loadingIndicatorEl.style.display = 'none';
+                errorMessageEl.style.display = 'block';
+                errorMessageEl.textContent = '错误：URL中未提供有效的帖子ID。';
+                return;
+            }
+            postId = parseInt(postId); // 转为数字类型
+
+            try {
+                postDetailsEl.style.display = 'none';
+                await fetchCurrentUser(); // 获取当前登录用户ID
+                await fetchPostDetails(); // 加载帖子详情
+                await fetchAndRenderComments(); // 加载评论列表
+
+                // 显示内容，隐藏加载状态
+                loadingIndicatorEl.style.display = 'none';
+                postDetailsEl.style.display = 'block';
+
+                // 绑定评论提交事件
+                commentForm.addEventListener('submit', handleCommentSubmit);
+
+            } catch (error) {
+                loadingIndicatorEl.style.display = 'none';
+                errorMessageEl.style.display = 'block';
+                errorMessageEl.textContent = error.message;
+            }
+        }
     });
 </script>
+
 </body>
 </html>

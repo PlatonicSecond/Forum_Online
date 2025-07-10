@@ -48,7 +48,7 @@ public class PostController {
             }
 
             // 生成唯一的文件名
-            String fileName = UUID.randomUUID().toString() + ".jpg";
+            String fileName = UUID.randomUUID().toString() + ".png";
 
             try {
                 file.transferTo(new File("src/main/resources/static/images",fileName)); // 保存图片
@@ -84,4 +84,17 @@ public class PostController {
             return ServerResult.error(501, e.getMessage());
         }
     }
+
+    // 修改后：根据postId查询单个帖子详情
+    @GetMapping("/detail") // 新接口：查询单个帖子详情
+    @ApiOperation("根据ID查询帖子详情")
+    public ServerResult<Post> getPostById(@RequestParam Integer postId) {
+        Post post = postService.getPostById(postId); // 需要在PostService中实现该方法
+        if (post != null) {
+            return ServerResult.success(post);
+        } else {
+            return ServerResult.error(404, "帖子不存在");
+        }
+    }
+
 }
