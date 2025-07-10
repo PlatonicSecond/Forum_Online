@@ -1,5 +1,5 @@
 // 设置axios基础URL
-axios.defaults.baseURL = 'http://localhost:8091';
+axios.defaults.baseURL = 'http://localhost:8080';
 
 // 当前用户token
 let currentToken = localStorage.getItem('token');
