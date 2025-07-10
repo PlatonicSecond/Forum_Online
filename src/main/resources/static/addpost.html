@@ -203,7 +203,7 @@
           // 基础验证
           if (!this.form.title || !this.form.content || !this.form.file) {
             alert('请填写所有字段并选择一张图片！');
-            return;
+          return;
         }
 
         // 创建 FormData 对象以发送文件
@@ -223,7 +223,10 @@
             // 处理后端响应
             if (response.data.code === 200) {
               alert('帖子发布成功！');
-              this.resetForm(); // 发布成功后清空表单
+              if (window.parent && typeof window.parent.closePostDialog === 'function') {
+                // 调用父页面的函数，并告诉它需要刷新 (true)
+                window.parent.closePostDialog(true);
+              }
             } else {
               alert('发布失败: ' + (response.data.message || '未知错误'));
           }

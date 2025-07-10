@@ -219,7 +219,6 @@ public class UserServiceImpl implements UserService {
         if (userId == null) {
             return null;
         }
-
         try {
             return userMapper.selectById(userId);
         } catch (Exception e) {

@@ -248,12 +248,15 @@
             top="5vh"
             :destroy-on-close="true">
         <iframe
+                id="iframe"
                 v-if="dialogVisible"
                 :src="postUrl"
                 frameborder="0"
                 style="width: 100%; height: 85vh; border: none;">
         </iframe>
     </el-dialog>
+
+    <span id="time"></span>
 </div>
 
 <script>
@@ -277,6 +280,24 @@
       }
     );
 
+    window.closePostDialog = function(shouldReload = false) {
+        const vueInstance = window.app;
+
+        if (vueInstance) {
+            vueInstance.dialogVisible = false;
+
+            // 2. 根据参数决定是否刷新父页面
+            if (shouldReload) {
+                // 使用 setTimeout 可以给弹窗的关闭动画一点时间，体验更好
+                setTimeout(() => {
+                    window.location.reload();
+                }, 0); // 100毫秒，与Element UI的默认动画时间差不多
+            }
+        } else {
+            console.error("无法找到 Vue 实例来关闭弹窗。");
+        }
+    }
+
     new Vue({
         el: '#app',
         data: {
@@ -285,11 +306,12 @@
             activeTabKey: '',
             availablePlates: [],
             posts: [],
-            columns: [[], [], [], []], // 4列瀑布流
+            columns: [[], [], [], [], [], []], // 4列瀑布流
             isLoading: false,
             page: 1,
             dialogVisible: false,
-            postUrl: ''
+            postUrl: '',
+            imageBaseUrl: 'http://localhost:8080/images/'
         },
         watch: {
             activeTabKey(newKey, oldKey) {
@@ -321,6 +343,7 @@
                     const response = await axios.get('/user/info');
                     if (response.data) {
                         this.currentUser = response.data.data;
+                        this.currentUser.avatarPath = this.imageBaseUrl + this.currentUser.avatarPath;
                     }
                 } catch (error) {
                     console.error('获取用户信息失败:', error.response ? error.response.data : error.Message);
@@ -359,7 +382,6 @@
                 }
             },
 
-
             /**
              * 根据当前激活的Tab获取帖子数据
              */
@@ -395,6 +417,14 @@
                     console.log(response.data);
 
                     if (newPosts.length > 0) {
+
+                         newPosts.forEach(post => {
+                            if (post.imgPath) {
+                                post.imgPath = this.imageBaseUrl + post.imgPath;
+                                post.avatarPath = this.imageBaseUrl + post.avatarPath;
+                            }
+                        });
+
                         this.distributePosts(newPosts);
                         this.posts.push(...newPosts);
                         this.page++;
@@ -411,7 +441,7 @@
 
             resetAndFetchData() {
                 this.posts = [];
-                this.columns = [[], [], [], []];
+                this.columns = [[], [], [], [], [], []];
                 this.page = 1;
                 this.fetchData();
             },

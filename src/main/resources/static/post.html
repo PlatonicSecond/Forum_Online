@@ -6,6 +6,8 @@
     <!-- 引入 Vue.js 和 Axios.js -->
     <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
     <link rel="stylesheet" href="css/post.css">
 </head>
 <body>
@@ -29,7 +31,10 @@
             <div class="post-info">
                 <h1>{{ post.title }}</h1>
                 <div class="post-meta">
-                    <span>👤 作者: {{ post.username || `ID: ${post.userId}` }}</span>
+                    <span>
+                        <el-avatar v-if="currentUser" :size="50" :src="post.avatarPath"></el-avatar>
+                        <span> {{ post.username || `ID: ${post.userId}` }}</span>
+                    </span>
                     <span>🕒 发布于: {{ formattedCreateTime }}</span>
                     <span>👁️ 浏览: {{ post.viewCount }}</span>
                 </div>
@@ -102,7 +107,8 @@
             },
             isSubmitting: false,
             error: null,
-            commentStatus: null, // { message: '...', type: 'success' | 'error' }
+            commentStatus: null,
+            imageBaseUrl: 'http://localhost:8080/images/'
         },
         computed: {
             postImageSrc() {
@@ -125,6 +131,7 @@
                 try {
                     const response = await axios.get('/user/info');
                     this.currentUser = response.data.data;
+                    this.currentUser.avatarPath = this.imageBaseUrl + this.currentUser.avatarPath;
                 } catch (error) {
                     console.warn('获取当前用户信息失败，将无法发表评论。', error.Message);
                 }
@@ -141,6 +148,8 @@
                     }
 
                     const postObject = postDataArray[0];
+                    postObject.imgPath = this.imageBaseUrl + postObject.imgPath;
+                    postObject.avatarPath = this.imageBaseUrl + postObject.avatarPath;
                     console.log(response.data.data);
 
                     // 现在基于正确的 postObject 进行判断
@@ -192,7 +201,7 @@
                         authorId: this.currentUser.userId, // 从已获取的用户信息中取ID
                         postId: this.postId,
                     };
-                    await axios.post('/comment/add', payload);
+                    await axios.post('/comments/add', payload);
 
                     this.commentStatus = { message: '发布成功！', type: 'success' };
                     this.newComment.content = '';

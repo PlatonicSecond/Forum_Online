@@ -16,9 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import java.util.List;
 
@@ -30,7 +28,7 @@ public class PostController {
     private PostService postService;
 
     @GetMapping("/select")
-    @ApiParam("寻找plateId对应的post")
+    @ApiParam("根据id找post")
     public ServerResult<List<PostResultDTO>> select(int id){
         return ServerResult.success(postService.select(id));
     }
@@ -52,15 +50,7 @@ public class PostController {
                 return ServerResult.error(401, "用户未登录");
             }
 
-            // 生成唯一的文件名
-            String fileName = UUID.randomUUID().toString() + ".png";
-
-            try {
-                file.transferTo(new File("src/main/resources/static/images",fileName)); // 保存图片
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
+            String fileName = postService.storeFile(file);
 
             // 设置帖子的创建信息
             post.setAuthorId(currentUserId);
@@ -71,8 +61,7 @@ public class PostController {
             else
                 post.setPlateId(2);
 
-            String imageUrl = "/images/png_for_post/" + fileName;
-            post.setImgPath(imageUrl);
+            post.setImgPath(fileName);
 
             postService.add(post);
             return ServerResult.success();
