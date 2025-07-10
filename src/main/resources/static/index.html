@@ -310,6 +310,7 @@
             page: 1,
             dialogVisible: false,
             postUrl: '',
+            hasMore: true,
             imageBaseUrl: 'http://localhost:8080/images/'
         },
         watch: {
@@ -343,6 +344,7 @@
                     if (response.data) {
                         this.currentUser = response.data.data;
                         this.currentUser.avatarPath = this.imageBaseUrl + this.currentUser.avatarPath;
+                        console.log(this.currentUser.avatarPath);
                     }
                 } catch (error) {
                     console.error('获取用户信息失败:', error.response ? error.response.data : error.Message);
@@ -385,7 +387,7 @@
              * 根据当前激活的Tab获取帖子数据
              */
             async fetchData() {
-                if (this.isLoading) return;
+                if (this.isLoading || !this.hasMore) return;
                 this.isLoading = true;
 
                 const activeTab = this.tabs.find(tab => tab.key === this.activeTabKey);
@@ -404,7 +406,7 @@
 
                 const requestParams = {
                     ...activeTab.params,
-                    page: this.page,
+                    pageNum: this.page,
                     pageSize: 15,
                 };
 
@@ -412,27 +414,46 @@
 
                 try {
                     const response = await axios.get(activeTab.api, { params: requestParams });
+                    const pageInfo = response.data.data; // 直接获取整个 PageInfo 对象
                     const newPosts = response.data.data.list || [];
                     console.log(response.data);
+
+                    // 关键点：直接从 requestParams 对象中获取 pageSize
+                    const requestedPageSize = requestParams.pageSize;
 
                     if (newPosts.length > 0) {
 
                          newPosts.forEach(post => {
-                            if (post.imgPath) {
+                            // 检查主图路径：如果存在，并且不是以 'http' 开头，才拼接
+                            if (post.imgPath && !post.imgPath.startsWith('http')) {
                                 post.imgPath = this.imageBaseUrl + post.imgPath;
+                            }
+
+                            // 检查头像路径：如果存在，并且不是以 'http' 开头，才拼接
+                            if (post.avatarPath && !post.avatarPath.startsWith('http')) {
                                 post.avatarPath = this.imageBaseUrl + post.avatarPath;
                             }
+                            console.log(post.imgPath);
                         });
 
                         this.distributePosts(newPosts);
                         this.posts.push(...newPosts);
                         this.page++;
-                    } else {
-                        if (this.page > 1) this.$message('没有更多内容了');
+                    }
+
+                    if (pageInfo.isLastPage) {
+                        this.hasMore = false;
+                        console.log('后端告知：已是最后一页，没有更多内容。');
+                        // 可以在这里加一个用户提示，但只在已经有数据的情况下
+                        if (this.posts.length > 0) {
+                            this.$message('没有更多内容了');
+                        }
                     }
                 } catch (error) {
                     console.error('获取帖子数据失败:', error.response ? error.response.data : error.message);
                     this.$message.error('数据加载失败，请稍后重试');
+                    // 加载失败时也应该停止后续尝试
+                    this.hasMore = false;
                 } finally {
                     this.isLoading = false;
                 }
@@ -442,6 +463,7 @@
                 this.posts = [];
                 this.columns = [[], [], [], [], [], []];
                 this.page = 1;
+                hasMore: true;
                 this.fetchData();
             },
 
@@ -460,7 +482,7 @@
             },
 
             handleScroll() {
-                if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 && !this.isLoading) {
+                if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 && !this.isLoading && this.hasMore) {
                     this.fetchData();
                 }
             },
