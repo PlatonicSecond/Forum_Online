@@ -14,6 +14,5 @@ public class LoginResponse {
         this.username = username;
         this.roleId = roleId;
         this.roleName = roleName;
-        // ugfug
     }
 } 
