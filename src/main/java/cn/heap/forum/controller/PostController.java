@@ -56,7 +56,14 @@ public class PostController {
             String fileName = UUID.randomUUID().toString() + ".png";
 
             try {
-                file.transferTo(new File("src/main/resources/static/images",fileName)); // 保存图片
+                String uploadDir = "src/main/resources/static/images/";
+                File dir = new File(uploadDir);
+                if (!dir.exists()) {
+                    dir.mkdirs(); // 自动创建不存在的目录
+                }
+                File destFile = new File(uploadDir + fileName);
+                file.transferTo(destFile);
+//                file.transferTo(new File("src/main/resources/static/images",fileName)); // 保存图片
             } catch (Exception e) {
                 e.printStackTrace();
             }

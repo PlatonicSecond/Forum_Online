@@ -133,22 +133,10 @@
             async fetchPostDetails() {
                 try {
                     const response = await axios.get('/post/select', { params: { id: this.postId } });
-                    console.log(response.data);
-                    const postDataArray = response.data.data;
-
-                    if (!postDataArray || postDataArray.length === 0) {
+                    if (!response.data || !response.data.data.postId) {
                         throw new Error('未找到该帖子或帖子数据格式不正确');
                     }
-
-                    const postObject = postDataArray[0];
-                    console.log(response.data.data);
-
-                    // 现在基于正确的 postObject 进行判断
-                    if (!postObject || !postObject.postId) {
-                        throw new Error('帖子数据格式不正确');
-                    }
-
-                    this.post = postObject;
+                    this.post = response.data.data;
                 } catch (error) {
                     console.error('加载帖子详情失败:', error);
                     this.error = `加载帖子详情失败: ${error.message}`;
