@@ -378,8 +378,12 @@
                     // 用户点击了确定
                     try {
                         console.log('正在删除帖子, ID:', card.postId);
-                        // 向后端发送删除请求
-                        const response = await axios.post('/post/delete', { id: card.postId });
+
+                        const response = await axios.delete('/post/delete', {
+                            params: {
+                                id: card.postId
+                            }
+                        });
 
                         if (response.data.code === 200) {
                             this.$message({
@@ -472,6 +476,8 @@
                     const response = await axios.get(activeTab.api, { params: requestParams });
                     const pageInfo = response.data.data;
                     const newPosts = pageInfo.list || [];
+
+                    console.log(newPosts);
 
                     if (newPosts.length > 0) {
                          newPosts.forEach(post => {

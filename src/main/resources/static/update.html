@@ -95,7 +95,13 @@
           try {
             const response = await axios.get('/post/select', { params: { id: this.postId } });
             if (response.data.code === 200) {
-              const post = response.data.data;
+              const postDataArray = response.data.data;
+
+              if (!postDataArray || postDataArray.length === 0) {
+                    throw new Error('未找到该帖子或帖子数据格式不正确');
+              }
+
+              const post = postDataArray[0];
               // 填充表单
               this.form.title = post.title;
               this.form.content = post.content;

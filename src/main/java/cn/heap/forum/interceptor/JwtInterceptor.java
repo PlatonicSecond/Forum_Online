@@ -95,7 +95,8 @@ public class JwtInterceptor implements HandlerInterceptor {
                 "/test-login.html",
                 "/static/post.html",
                 "/favicon.ico",
-                "/error"
+                "/error",
+                "/update.html"
         };
 
         // 前缀匹配的白名单（静态资源等）
