@@ -14,7 +14,7 @@ public interface PlateMapper extends BaseMapper<Plate> {
     @Select("select p.*, u.username, u.avatar_path from post p join user u on u.user_id = p.author_id where plate_id=#{plateId}")
     List<PlatePostDTO> search(int plateId);
 
-    @Select("select p.*, u.username, u.avatar_path from post p join user u on u.user_id = p.author_id where plate_id=#{authorId}")
+    @Select("select p.*, u.username, u.avatar_path from post p join user u on u.user_id = p.author_id where p.author_id=#{authorId}")
     List<PlatePostDTO> authorsearch(int authorId);
 
     @Select("SELECT p.*, u.username, u.avatar_path " +

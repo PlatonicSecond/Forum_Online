@@ -92,9 +92,13 @@ public class JwtInterceptor implements HandlerInterceptor {
                 "/index.html",
                 "/addpost.html",
                 "/login.html",
-                "/test-login.html",
-                "/static/post.html",
-                "/favicon.ico"
+                "/post.html",
+                "/register.html",
+                "/login.html",
+                "/home.html",
+                "/favicon.ico",
+                "/error",
+                "/update.html"
         };
 
         // 前缀匹配的白名单（静态资源等）

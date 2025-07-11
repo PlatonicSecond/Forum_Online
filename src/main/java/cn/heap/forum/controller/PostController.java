@@ -83,4 +83,57 @@ public class PostController {
         }
     }
 
+    @PostMapping(value = "/update", consumes = "multipart/form-data")
+    @ApiOperation(value = "更新帖子", notes = "用户更新自己的帖子")
+    public ServerResult<Void> update(
+            @RequestParam("id") Integer id,
+            @RequestParam("title") String title,
+            @RequestParam("content") String content,
+            @RequestParam(value = "file", required = false) MultipartFile file) { // 1. file 设置为可选
+
+        try {
+            // 2. 验证用户登录状态
+            Integer currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId == null) {
+                return ServerResult.error(401, "用户未登录");
+            }
+
+            // 3. 从数据库获取要更新的原始帖子
+            Post post = new Post();
+
+            post.setPostId(id);
+
+            List<PostResultDTO> postResultDTOS = postService.select(id);
+            if (postResultDTOS.isEmpty()) {
+                return ServerResult.error(404, "帖子不存在");
+            }
+
+            post.setTitle(title);
+            post.setContent(content);
+
+            // 6. 如果用户上传了新文件，则处理新文件
+            if (file != null && !file.isEmpty()) {
+                // a. 存储新文件
+                String newFileName = postService.storeFile(file);
+
+                // c. 更新帖子记录中的图片路径
+                post.setImgPath(newFileName);
+            }
+            else{
+                post.setImgPath(postResultDTOS.get(0).getImgPath());
+            }
+
+            post.setUpdateTime(LocalDateTime.now());
+
+            // 8. 调用Service层执行更新操作
+            postService.update(post); // 假设你的Service有update方法
+
+            return ServerResult.success();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ServerResult.error(500, "更新帖子失败:" + e.getMessage());
+        }
+    }
+
 }

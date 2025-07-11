@@ -1,5 +1,6 @@
 package cn.heap.forum.service;
 
+import cn.heap.forum.pojo.Post;
 import cn.heap.forum.pojo.PostDTO;
 import cn.heap.forum.pojo.PostResultDTO;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,4 +16,6 @@ public interface PostService {
     void delete(int id);
 
     String storeFile(MultipartFile file);
+
+    void update(Post post);
 }
