@@ -30,7 +30,7 @@ import java.util.UUID;
 @Api(tags = "user-controller")
 public class UserController {
 
-    @Value("${file.upload-dir}")
+    @Value("${file.upload-of-avatr}")
     private String path;
 
 //    private String path = "src//main//resources//static//images//png_for_potrait//";
@@ -326,11 +326,6 @@ public class UserController {
             e.printStackTrace();
             return ServerResult.error(500, "服务器内部错误: " + e.getMessage());
         }
-    }
-
-    @GetMapping("user/info2")
-    public ServerResult<User> getUserInfo2(){
-        return ServerResult.success(userService.getUserById(7));
     }
 
     @ApiOperation(value = "验证JWT和ThreadLocal", notes = "检查JWT令牌和ThreadLocal用户上下文是否正常工作")

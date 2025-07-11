@@ -50,3 +50,4 @@ pagehelper:
 
 file:
   upload-dir: D:/load/images
+  upload-of-avatr: D:/load/images/png_for_potrait
