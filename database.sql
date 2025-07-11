@@ -50,7 +50,7 @@ CREATE TABLE comment (
                          content TEXT NOT NULL COMMENT '评论内容',
                          post_id INT NOT NULL COMMENT '所属帖子ID',
                          author_id INT NOT NULL COMMENT '评论用户ID',
-                         user_id INT NOT NULL COMMENT '评论回复用户ID',
+                         user_id INT default NULL COMMENT '评论回复用户ID',
                          create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                          FOREIGN KEY (post_id) REFERENCES post(post_id),
                          FOREIGN KEY (user_id) REFERENCES user(user_id),

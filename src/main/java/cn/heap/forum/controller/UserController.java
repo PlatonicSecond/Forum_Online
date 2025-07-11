@@ -196,6 +196,7 @@ public class UserController {
             @RequestParam(value = "username", required = false) String username,
             @RequestParam(value = "password", required = false) String password,
             @RequestParam(value = "newPassword", required = false) String newPassword,
+            @RequestParam(value = "confirmNewPassword", required = false) String confirmNewPassword,
             @RequestPart(value = "avatar", required = false) MultipartFile avatar) {
         try {
             System.out.println("=== 开始处理更新用户信息请求 ===");
@@ -226,6 +227,7 @@ public class UserController {
             updateRequest.setUsername(username);
             updateRequest.setPassword(password);
             updateRequest.setNewPassword(newPassword);
+            updateRequest.setConfirmNewPassword(confirmNewPassword);
             updateRequest.setAvatarPath(fileName);
 
 

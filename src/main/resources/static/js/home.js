@@ -195,6 +195,10 @@ new Vue({
                 if (this.profileForm.username) formData.append('username', this.profileForm.username);
                 if (this.profileForm.password) formData.append('password', this.profileForm.password);
                 if (this.profileForm.newPassword) formData.append('newPassword', this.profileForm.newPassword);
+                if (this.profileForm.confirmNewPassword) formData.append('confirmNewPassword', this.profileForm.confirmNewPassword);
+                console.log("oldpassword" + this.profileForm.password)
+                console.log("new" + this.profileForm.newPassword)
+                console.log("confirm" + this.profileForm.confirmNewPassword)
                 if (this.avatarFile) formData.append('avatar', this.avatarFile);
 
                 // 发送 multipart/form-data 请求

@@ -9,4 +9,8 @@ public class UpdateUserRequest {
     private String newPassword;
     private String confirmNewPassword;
     private String avatarPath;
-} 
+
+    public String getconfirmNewPassword() {
+        return confirmNewPassword;
+    }
+}

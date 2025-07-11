@@ -166,8 +166,10 @@ public class UserServiceImpl implements UserService {
                 }
 
                 String correctPassword = currentUser.getPassword();
-                String inputPassword = updateRequest.getNewPassword();
-                String savePassword = passwordEncoder.encode(inputPassword);
+                String inputPassword = updateRequest.getPassword();
+                String newPassword = updateRequest.getNewPassword();
+                String confirmPassword = updateRequest.getconfirmNewPassword();
+                String savePassword = passwordEncoder.encode(newPassword);
                 boolean match = passwordEncoder.matches(inputPassword, correctPassword);
 
                 if (!match) {
@@ -175,12 +177,15 @@ public class UserServiceImpl implements UserService {
                     return false;
                 }
 
-                if (updateRequest.getNewPassword().length() < 6) {
+                if (newPassword.length() < 6) {
                     System.out.println("❌ 新密码长度至少6个字符");
                     return false;
                 }
 
-                if (!updateRequest.getNewPassword().equals(updateRequest.getConfirmNewPassword())) {
+                System.out.println("oldpassword:" + inputPassword);
+                System.out.println("newpassword:" + newPassword);
+                System.out.println("confirmpassword:" + confirmPassword);
+                if (!newPassword.equals(confirmPassword)) {
                     System.out.println("❌ 两次输入的新密码不一致");
                     return false;
                 }
