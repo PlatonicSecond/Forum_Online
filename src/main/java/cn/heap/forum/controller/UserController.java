@@ -216,10 +216,9 @@ public class UserController {
             // 2. 处理头像文件
             String fileName = UserContext.getCurrentUserId() + ".png";
             if (avatar != null && !avatar.isEmpty()) {
-                String uploadDir = "D:/load/images/png_for_potrait";
 
                 // 调用工具方法保存文件
-                String avatarPath = saveAvatarWithTherapyName(avatar, uploadDir, fileName);
+                String avatarPath = saveAvatarWithTherapyName(avatar, path, fileName);
             }
 
             // 3. 构造 UpdateUserRequest 对象
