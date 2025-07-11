@@ -1,6 +1,7 @@
 package cn.heap.forum.service.impl;
 
 import cn.heap.forum.mapper.PostMapper;
+import cn.heap.forum.pojo.Post;
 import cn.heap.forum.pojo.PostDTO;
 import cn.heap.forum.pojo.PostResultDTO;
 import cn.heap.forum.service.PostService;
@@ -61,5 +62,10 @@ public class PostServiceImpl implements PostService {
             e.printStackTrace();
             throw new RuntimeException("Could not store file " + fileName, e);
         }
+    }
+
+    @Override
+    public void update(Post post) {
+        postMapper.update(post);
     }
 }

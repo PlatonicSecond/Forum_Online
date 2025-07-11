@@ -200,41 +200,40 @@
 
         // 异步提交表单
         async submitForm() {
-          // 基础验证
-          if (!this.form.title || !this.form.content || !this.form.file) {
-            alert('请填写所有字段并选择一张图片！');
-          return;
-        }
+            // 基础验证
+            if (!this.form.title || !this.form.content || !this.form.file) {
+                alert('请填写所有字段并选择一张图片！');
+                return;
+            }
 
-        // 创建 FormData 对象以发送文件
-        const formData = new FormData();
-        formData.append('title', this.form.title);
-        formData.append('content', this.form.content);
-        formData.append('file', this.form.file);
+            // 创建 FormData 对象以发送文件
+            const formData = new FormData();
+            formData.append('title', this.form.title);
+            formData.append('content', this.form.content);
+            formData.append('file', this.form.file);
 
-          try {
-            // 发送POST请求
-            const response = await axios.post('post/add', formData, {
-              headers: {
-                'Content-Type': 'multipart/form-data'
-              }
-            });
+            try {
+                // 发送POST请求
+                const response = await axios.post('post/add', formData, {
+                  headers: {
+                    'Content-Type': 'multipart/form-data'
+                  }
+                });
 
-            // 处理后端响应
-            if (response.data.code === 200) {
-              alert('帖子发布成功！');
-              if (window.parent && typeof window.parent.closePostDialog === 'function') {
-                // 调用父页面的函数，并告诉它需要刷新 (true)
-                window.parent.closePostDialog(true);
-              }
-            } else {
-              alert('发布失败: ' + (response.data.message || '未知错误'));
-          }
-
-          } catch (error) {
+                // 处理后端响应
+                if (response.data.code === 200) {
+                  alert('帖子发布成功！');
+                  if (window.parent && typeof window.parent.closePostDialog === 'function') {
+                    // 调用父页面的函数，并告诉它需要刷新 (true)
+                    window.parent.closePostDialog(true);
+                  }
+                } else {
+                  alert('发布失败: ' + (response.data.message || '未知错误'));
+                }
+            } catch (error) {
             console.error('发布失败:', error);
             alert('网络请求错误，请稍后重试。');
-          }
+            }
         },
 
         // 清空表单和预览

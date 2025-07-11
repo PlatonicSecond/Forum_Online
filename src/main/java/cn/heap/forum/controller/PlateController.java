@@ -3,7 +3,6 @@ package cn.heap.forum.controller;
 
 import cn.heap.forum.pojo.Plate;
 import cn.heap.forum.pojo.PlatePostDTO;
-import cn.heap.forum.pojo.Post;
 import cn.heap.forum.service.PlateService;
 import cn.heap.forum.util.ServerResult;
 import cn.heap.forum.util.UserContext;

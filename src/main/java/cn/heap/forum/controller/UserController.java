@@ -322,7 +322,6 @@ public class UserController {
                 System.out.println("❌ 用户不存在");
                 return ServerResult.error(404, "用户不存在");
             }
-
         } catch (Exception e) {
             System.out.println("❌ 获取用户信息异常: " + e.getMessage());
             e.printStackTrace();
