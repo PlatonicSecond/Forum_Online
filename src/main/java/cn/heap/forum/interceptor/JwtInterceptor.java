@@ -92,7 +92,10 @@ public class JwtInterceptor implements HandlerInterceptor {
                 "/index.html",
                 "/addpost.html",
                 "/login.html",
-                "/static/post.html",
+                "/post.html",
+                "/register.html",
+                "/login.html",
+                "/home.html",
                 "/favicon.ico",
                 "/error",
                 "/update.html"
