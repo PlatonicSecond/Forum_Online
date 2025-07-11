@@ -71,6 +71,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(encodedPassword); // 存储加密后的密码
         user.setRoleId(registerRequest.getRoleId() != null ? registerRequest.getRoleId() : 1); // 默认角色ID为1
         user.setRegisterTime(LocalDateTime.now());
+        user.setAvatarPath("1.png");
 
         System.out.println("✅ 用户对象创建完成: " + user.getUsername() + ", role_id: " + user.getRoleId());
 

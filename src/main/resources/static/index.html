@@ -310,7 +310,7 @@
             page: 1,
             dialogVisible: false,
             postUrl: '',
-            imageBaseUrl: 'http://localhost:8080/images/'
+            imageBaseUrl: 'http://localhost:8080/'
         },
         watch: {
             activeTabKey(newKey, oldKey) {
@@ -338,11 +338,15 @@
              */
             async fetchUserInfo() {
                 try {
+                    console.log("333")
                     // 现在这个请求会自动带上 Authorization header (如果 token 存在)
                     const response = await axios.get('/user/info');
+                    console.log("111")
                     if (response.data) {
+                        console.log("222")
                         this.currentUser = response.data.data;
                         this.currentUser.avatarPath = this.imageBaseUrl + this.currentUser.avatarPath;
+                        console.log("用户头像信息路径为：" + this.currentUser.avatarPath);
                     }
                 } catch (error) {
                     console.error('获取用户信息失败:', error.response ? error.response.data : error.Message);
