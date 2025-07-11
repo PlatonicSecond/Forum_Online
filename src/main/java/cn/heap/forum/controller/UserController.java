@@ -214,7 +214,7 @@ public class UserController {
             System.out.println("  - 头像文件: " + (avatar != null ? avatar.getOriginalFilename() : "无"));
 
             // 2. 处理头像文件
-            String fileName = UserContext.getCurrentUsername() + ".png";
+            String fileName = UserContext.getCurrentUserId() + ".png";
             if (avatar != null && !avatar.isEmpty()) {
                 String uploadDir = "D:/load/images/png_for_potrait";
 
@@ -311,7 +311,7 @@ public class UserController {
                 if (user.getAvatarPath() == null) {
                     user.setAvatarPath(path + "/1.png");
                 } else {
-                    user.setAvatarPath("images/png_for_potrait/" + user.getAvatarPath());
+                    user.setAvatarPath("png_for_potrait/" + user.getAvatarPath());
                 }
 
                 System.out.println("后端用户头像路径：" + user.getAvatarPath());

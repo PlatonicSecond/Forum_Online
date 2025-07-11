@@ -343,6 +343,7 @@
                     if (response.data) {
                         this.currentUser = response.data.data;
                         this.currentUser.avatarPath = this.imageBaseUrl + this.currentUser.avatarPath;
+                        console.log("用户头像路径：" + this.currentUser.avatarPath)
                     }
                 } catch (error) {
                     console.error('获取用户信息失败:', error.response ? error.response.data : error.Message);
