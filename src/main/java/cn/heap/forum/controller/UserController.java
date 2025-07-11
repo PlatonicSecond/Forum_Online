@@ -13,13 +13,28 @@ import com.baomidou.mybatisplus.extension.api.R;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @Api(tags = "user-controller")
 public class UserController {
+
+    @Value("${file.upload-dir}")
+    private String path;
+
+//    private String path = "src//main//resources//static//images//png_for_potrait//";
+
     @Autowired
     private UserService userService;
 
@@ -30,6 +45,20 @@ public class UserController {
     @PostMapping("/user/login") // 登录接口,身份判断
     public ServerResult<LoginResponse> login(@RequestBody LoginRequest loginRequest){
         try {
+            Path Path = Paths.get(path);
+            System.out.println("Path: " + Path);
+
+            try {
+                if (!Files.exists(Path)) {
+                    System.out.println("路径：" + Path + " 不存在！");
+                    Files.createDirectories(Path); // 自动创建所有不存在的父目录
+                    System.out.println("路径：" + Path + "创建成功！");
+                }
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+
+
             System.out.println("=== 开始处理登录请求 ===");
 
             // 1. 参数基本验证
@@ -74,8 +103,27 @@ public class UserController {
             System.out.println("✅ JWT令牌生成成功: " + token.substring(0, 20) + "...");
 
             // 4. 构造响应数据
+            String avatarPath = user.getAvatarPath();
+
+            System.out.println("avatarPath: " + avatarPath);
+            try{
+                if (avatarPath == null) {
+                    avatarPath = path + "/1.png";
+                    System.out.println("avatarPath: " + avatarPath);
+                    File file = new File(avatarPath);
+                    if (!file.exists()) {
+                        System.out.println("file not exists: " + file.getAbsolutePath());
+                    } else {
+                        System.out.println("file exists: " + file.getAbsolutePath());
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+
+
             String roleName = user.getRoleId() == 1 ? "管理员" : "普通用户";
-            LoginResponse loginResponse = new LoginResponse(token, user.getUsername(), user.getRoleId(), roleName);
+            LoginResponse loginResponse = new LoginResponse(token, user.getUsername(), user.getRoleId(), roleName, avatarPath);
 
             System.out.println("🎉 登录成功! 返回响应数据");
             return ServerResult.success(loginResponse);
@@ -144,11 +192,15 @@ public class UserController {
 
     @ApiOperation(value = "更新用户信息", notes = "更新用户个人信息")
     @PutMapping("/user/update")
-    public ServerResult<String> updateUserInfo(@RequestBody UpdateUserRequest updateRequest){
+    public ServerResult<String> updateUserInfo(
+            @RequestParam(value = "username", required = false) String username,
+            @RequestParam(value = "password", required = false) String password,
+            @RequestParam(value = "newPassword", required = false) String newPassword,
+            @RequestPart(value = "avatar", required = false) MultipartFile avatar) {
         try {
             System.out.println("=== 开始处理更新用户信息请求 ===");
 
-            // 1. 从ThreadLocal获取当前用户ID
+            // 1. 从 ThreadLocal 获取当前用户 ID
             Integer currentUserId = UserContext.getCurrentUserId();
             if (currentUserId == null) {
                 System.out.println("❌ 用户未登录");
@@ -157,17 +209,28 @@ public class UserController {
 
             System.out.println("📝 更新请求信息:");
             System.out.println("  - 当前用户ID: " + currentUserId);
-            System.out.println("  - 新用户名: " + updateRequest.getUsername());
-            System.out.println("  - 是否修改密码: " + (updateRequest.getNewPassword() != null && !updateRequest.getNewPassword().trim().isEmpty()));
-            System.out.println("  - 头像路径: " + updateRequest.getAvatarPath());
+            System.out.println("  - 新用户名: " + username);
+            System.out.println("  - 是否修改密码: " + (newPassword != null && !newPassword.trim().isEmpty()));
+            System.out.println("  - 头像文件: " + (avatar != null ? avatar.getOriginalFilename() : "无"));
 
-            // 2. 参数基本验证
-            if (updateRequest == null) {
-                System.out.println("❌ 更新请求为空");
-                return ServerResult.error(400, "更新信息不能为空");
+            // 2. 处理头像文件
+            String fileName = UserContext.getCurrentUsername() + ".png";
+            if (avatar != null && !avatar.isEmpty()) {
+                String uploadDir = "D:/load/images/png_for_potrait";
+
+                // 调用工具方法保存文件
+                String avatarPath = saveAvatarWithTherapyName(avatar, uploadDir, fileName);
             }
 
-            // 3. 执行更新
+            // 3. 构造 UpdateUserRequest 对象
+            UpdateUserRequest updateRequest = new UpdateUserRequest();
+            updateRequest.setUsername(username);
+            updateRequest.setPassword(password);
+            updateRequest.setNewPassword(newPassword);
+            updateRequest.setAvatarPath(fileName);
+
+
+            // 4. 执行更新
             boolean success = userService.updateUserInfo(currentUserId, updateRequest);
             if (success) {
                 System.out.println("🎉 用户信息更新成功!");
@@ -183,6 +246,48 @@ public class UserController {
             return ServerResult.error(500, "服务器内部错误: " + e.getMessage());
         }
     }
+//    @PutMapping("/user/update")
+//    public ServerResult<String> updateUserInfo(@RequestBody UpdateUserRequest updateRequest){
+//        try {
+//            System.out.println("=== 开始处理更新用户信息请求 ===");
+//
+//            // 1. 从ThreadLocal获取当前用户ID
+//            Integer currentUserId = UserContext.getCurrentUserId();
+//            if (currentUserId == null) {
+//                System.out.println("❌ 用户未登录");
+//                return ServerResult.error(401, "用户未登录");
+//            }
+//
+//            System.out.println("📝 更新请求信息:");
+//            System.out.println("  - 当前用户ID: " + currentUserId);
+//            System.out.println("  - 新用户名: " + updateRequest.getUsername());
+//            System.out.println("  - 是否修改密码: " + (updateRequest.getNewPassword() != null && !updateRequest.getNewPassword().trim().isEmpty()));
+//            System.out.println("  - 头像路径: " + updateRequest.getAvatarPath());
+//
+//            // 2. 参数基本验证
+//            if (updateRequest == null) {
+//                System.out.println("❌ 更新请求为空");
+//                return ServerResult.error(400, "更新信息不能为空");
+//            }
+//
+//
+//
+//            // 3. 执行更新
+//            boolean success = userService.updateUserInfo(currentUserId, updateRequest);
+//            if (success) {
+//                System.out.println("🎉 用户信息更新成功!");
+//                return ServerResult.success("用户信息更新成功");
+//            } else {
+//                System.out.println("❌ 用户信息更新失败");
+//                return ServerResult.error(500, "更新失败，请检查输入信息");
+//            }
+//
+//        } catch (Exception e) {
+//            System.out.println("❌ 更新用户信息异常: " + e.getMessage());
+//            e.printStackTrace();
+//            return ServerResult.error(500, "服务器内部错误: " + e.getMessage());
+//        }
+//    }
 
     @ApiOperation(value = "获取用户信息", notes = "获取当前登录用户的详细信息")
     @GetMapping("/user/info")
@@ -201,7 +306,17 @@ public class UserController {
             if (user != null) {
                 // 不返回密码信息
                 user.setPassword(null);
+
+                // 设置默认头像
+                if (user.getAvatarPath() == null) {
+                    user.setAvatarPath(path + "/1.png");
+                } else {
+                    user.setAvatarPath("images/png_for_potrait/" + user.getAvatarPath());
+                }
+
+                System.out.println("后端用户头像路径：" + user.getAvatarPath());
                 System.out.println("✅ 成功获取用户信息: " + user.getUsername());
+                System.out.println("111:" + user);
                 return ServerResult.success(user);
             } else {
                 System.out.println("❌ 用户不存在");
@@ -212,6 +327,11 @@ public class UserController {
             e.printStackTrace();
             return ServerResult.error(500, "服务器内部错误: " + e.getMessage());
         }
+    }
+
+    @GetMapping("user/info2")
+    public ServerResult<User> getUserInfo2(){
+        return ServerResult.success(userService.getUserById(7));
     }
 
     @ApiOperation(value = "验证JWT和ThreadLocal", notes = "检查JWT令牌和ThreadLocal用户上下文是否正常工作")
@@ -257,5 +377,27 @@ public class UserController {
             e.printStackTrace();
             return ServerResult.error(500, "验证失败: " + e.getMessage());
         }
+    }
+
+    private String saveAvatarWithTherapyName(MultipartFile avatar, String uploadDir, String therapyName) throws IOException, IOException {
+        // 创建目录
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+//        // 原始文件名
+//        String originalFilename = avatar.getOriginalFilename();
+//        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+//
+//        // 新文件名：用户ID_治病名称_UUID.扩展名
+//        String newFilename = therapyName + "_" + UUID.randomUUID().toString() + fileExtension;
+
+        // 保存文件
+        Path targetPath = uploadPath.resolve(therapyName);
+        Files.copy(avatar.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+        // 返回完整路径（或相对路径，根据你的业务需要）
+        return targetPath.toString();
     }
 }

@@ -15,6 +15,7 @@ spring:
       max-lifetime: 1800000
   servlet:
     multipart:
+      enabled: true
       max-file-size: 10MB
       max-request-size: 12MB
 
@@ -48,4 +49,4 @@ pagehelper:
   params: count=countSql  # 分页参数
 
 file:
-  upload-dir: D:\load\images
+  upload-dir: D:/load/images

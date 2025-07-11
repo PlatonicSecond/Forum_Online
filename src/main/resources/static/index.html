@@ -87,22 +87,8 @@
 
 
         /* 卡片网格和卡片样式 */
-        .post-card {
-            position: relative; /* <<< 新增：为按钮绝对定位提供参照 */
-            background-color: #2c2c2c; border: 1px solid #444; border-radius: 12px; color: #e0e0e0; margin-bottom: 15px; overflow: hidden; transition: all 0.2s ease-in-out; cursor: pointer;
-        }
+        .post-card { background-color: #2c2c2c; border: 1px solid #444; border-radius: 12px; color: #e0e0e0; margin-bottom: 15px; overflow: hidden; transition: all 0.2s ease-in-out; cursor: pointer; }
         .post-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-
-        /* <<< 新增：卡片操作按钮容器样式 */
-        .card-actions {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            z-index: 10;
-            display: flex;
-            gap: 5px;
-        }
-
         .view-count { position: absolute; top: 8px; left: 8px; background-color: rgba(0, 0, 0, 0.6); color: white; padding: 3px 8px; border-radius: 12px; font-size: 12px; display: flex; align-items: center; }
         .view-count .el-icon-view { margin-right: 4px; }
         .card-content { padding: 12px; }
@@ -196,16 +182,16 @@
                 <div class="tabs-container">
                     <el-button-group>
                         <el-button
-                                v-for="(tab, index) in tabs"
-                                :key="tab.key"
+                            v-for="(tab, index) in tabs"
+                            :key="tab.key"
 
-                                :class="{
+                            :class="{
                                 'is-active': activeTabKey === tab.key,
                                 'is-first-tab': index === 0,  // 如果是第一个元素，添加 'is-first-tab' 类
                                 'is-last-tab': index === tabs.length - 1 // 如果是最后一个，添加 'is-last-tab' 类
                             }"
 
-                                @click="activeTabKey = tab.key">
+                            @click="activeTabKey = tab.key">
                             {{ tab.name }}
                         </el-button>
                     </el-button-group>
@@ -221,26 +207,6 @@
             <el-row v-else :gutter="15">
                 <el-col :span="24 / columns.length" v-for="(column, colIndex) in columns" :key="colIndex">
                     <el-card v-for="card in column" :key="card.postId" class="post-card" :body-style="{ padding: '0px' }" @click.native="openPostDialog(card)">
-
-                        <!-- <<< 新增：操作按钮容器 >>> -->
-                        <div v-if="activeTabKey === 'my-posts'" class="card-actions">
-                            <el-button
-                                    type="primary"
-                                    icon="el-icon-edit"
-                                    size="mini"
-                                    circle
-                                    title="编辑"
-                                    @click.stop="handleUpdate(card)"></el-button>
-                            <el-button
-                                    type="danger"
-                                    icon="el-icon-delete"
-                                    size="mini"
-                                    circle
-                                    title="删除"
-                                    @click.stop="handleDelete(card)"></el-button>
-                        </div>
-                        <!-- <<< 新增结束 >>> -->
-
                         <div v-if="card.imgPath" style="position: relative;">
                             <el-image :src="card.imgPath" fit="cover" lazy style="width: 100%; height: 150px; display: block;"></el-image>
                             <div class="view-count"><i class="el-icon-view"></i> {{ card.viewCount }}</div>
@@ -263,13 +229,13 @@
     <transition name="fade">
         <button
                 v-if="currentUser"
-                class="floating-button"
-                @click="openAddDialog"
-                title="发布新帖子">
-            <!-- 加号 SVG 图标 -->
-            <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
+        class="floating-button"
+        @click="openAddDialog"
+        title="发布新帖子">
+        <!-- 加号 SVG 图标 -->
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
         </button>
     </transition>
 
@@ -300,7 +266,9 @@
     // 这个函数会在每次发送请求之前被调用
     axios.interceptors.request.use(
       config => {
+
         const token = localStorage.getItem('token');
+
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -313,13 +281,16 @@
 
     window.closePostDialog = function(shouldReload = false) {
         const vueInstance = window.app;
+
         if (vueInstance) {
             vueInstance.dialogVisible = false;
+
+            // 2. 根据参数决定是否刷新父页面
             if (shouldReload) {
+                // 使用 setTimeout 可以给弹窗的关闭动画一点时间，体验更好
                 setTimeout(() => {
-                    // 只刷新当前tab的数据，而不是整个页面
-                    vueInstance.resetAndFetchData();
-                }, 100);
+                    window.location.reload();
+                }, 0); // 100毫秒，与Element UI的默认动画时间差不多
             }
         } else {
             console.error("无法找到 Vue 实例来关闭弹窗。");
@@ -332,13 +303,13 @@
             currentUser: null,
             tabs: [],
             activeTabKey: '',
+            availablePlates: [],
             posts: [],
-            columns: [[], [], [], [], [], []], // 6列瀑布流
+            columns: [[], [], [], [], [], []], // 4列瀑布流
             isLoading: false,
             page: 1,
             dialogVisible: false,
             postUrl: '',
-            hasMore: true,
             imageBaseUrl: 'http://localhost:8080/images/'
         },
         watch: {
@@ -351,7 +322,8 @@
         methods: {
 
             openAddDialog() {
-                this.postUrl = 'addpost.html';
+                // 使用相对于服务器根目录的绝对路径
+                this.postUrl = 'addpost.html'; // 注意前面的斜杠 '/'
                 this.dialogVisible = true;
             },
 
@@ -361,85 +333,47 @@
                 this.dialogVisible = true;
             },
 
-            // <<< 新增：处理更新帖子事件 >>>
-            handleUpdate(card) {
-                console.log('准备更新帖子, ID:', card.postId);
-                this.postUrl = `update.html?id=${card.postId}`; // 指向更新页面
-                this.dialogVisible = true;
-            },
-
-            // <<< 新增：处理删除帖子事件 >>>
-            handleDelete(card) {
-                this.$confirm('此操作将永久删除该帖子, 是否继续?', '提示', {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
-                    type: 'warning'
-                }).then(async () => {
-                    // 用户点击了确定
-                    try {
-                        console.log('正在删除帖子, ID:', card.postId);
-
-                        const response = await axios.delete('/post/delete', {
-                            params: {
-                                id: card.postId
-                            }
-                        });
-
-                        if (response.data.code === 200) {
-                            this.$message({
-                                type: 'success',
-                                message: '删除成功!'
-                            });
-                            // 刷新当前列表，而不是整个页面，体验更好
-                            this.resetAndFetchData();
-                        } else {
-                            this.$message.error('删除失败: ' + response.data.message);
-                        }
-                    } catch (error) {
-                        console.error('删除帖子API请求失败:', error);
-                        this.$message.error('删除操作失败，请检查网络或联系管理员');
-                    }
-                }).catch(() => {
-                    // 用户点击了取消
-                    this.$message({
-                        type: 'info',
-                        message: '已取消删除'
-                    });
-                });
-            },
-
+            /**
+             * 获取当前登录用户信息
+             */
             async fetchUserInfo() {
                 try {
+                    // 现在这个请求会自动带上 Authorization header (如果 token 存在)
                     const response = await axios.get('/user/info');
-                    if (response.data && response.data.data) {
+                    if (response.data) {
                         this.currentUser = response.data.data;
-                        if (this.currentUser.avatarPath && !this.currentUser.avatarPath.startsWith('http')) {
-                            this.currentUser.avatarPath = this.imageBaseUrl + this.currentUser.avatarPath;
-                        }
+                        this.currentUser.avatarPath = this.imageBaseUrl + this.currentUser.avatarPath;
                     }
                 } catch (error) {
-                    console.error('获取用户信息失败:', error.response ? error.response.data : error.message);
+                    console.error('获取用户信息失败:', error.response ? error.response.data : error.Message);
                 }
             },
 
+            // fetchPlates 方法本身逻辑是好的，保持不变
             async fetchPlates() {
                 try {
                     const response = await axios.get('/plate/select');
                     if (response.data.code === 200 && response.data.data) {
                         const platesData = response.data.data;
+                        console.log("获取板块列表成功:", platesData);
+
+                        // 将动态板块转换为 tabs 格式
                         const dynamicTabs = platesData.map(d => ({
                             key: 'plate' + d.plateId,
                             name: d.name,
                             api: '/plate/postsearch',
                             params: { plateId: d.plateId }
                         }));
+
+                        // 将动态板块和固定板块合并后一次性赋值，这样更高效
                         this.tabs = [
                             ...dynamicTabs,
                             { key: 'my-posts',  name: '我的帖子', api: '/plate/searchbyauthor', params: {} },
                             { key: 'my-comments', name: '我的评论', api: '/plate/searchbycomment', params: {} }
                         ];
+
                     } else {
-                         console.error("获取板块列表失败:", response.data);
+                         console.error("获取板块列表失败:", response.Data);
                     }
                 } catch (error) {
                     console.error("获取板块API请求失败:", error);
@@ -447,8 +381,11 @@
                 }
             },
 
+            /**
+             * 根据当前激活的Tab获取帖子数据
+             */
             async fetchData() {
-                if (this.isLoading || !this.hasMore) return;
+                if (this.isLoading) return;
                 this.isLoading = true;
 
                 const activeTab = this.tabs.find(tab => tab.key === this.activeTabKey);
@@ -458,6 +395,7 @@
                     return;
                 }
 
+                // 如果是"我的帖子"或"我的评论"，但用户未登录，则不发起请求
                 if ((activeTab.key === 'my-posts' || activeTab.key === 'my-comments') && !this.currentUser) {
                     this.$message.warning('请先登录以查看您的内容');
                     this.isLoading = false;
@@ -466,7 +404,7 @@
 
                 const requestParams = {
                     ...activeTab.params,
-                    pageNum: this.page,
+                    page: this.page,
                     pageSize: 15,
                 };
 
@@ -474,36 +412,27 @@
 
                 try {
                     const response = await axios.get(activeTab.api, { params: requestParams });
-                    const pageInfo = response.data.data;
-                    const newPosts = pageInfo.list || [];
-
-                    console.log(newPosts);
+                    const newPosts = response.data.data.list || [];
+                    console.log(response.data);
 
                     if (newPosts.length > 0) {
+
                          newPosts.forEach(post => {
-                            if (post.imgPath && !post.imgPath.startsWith('http')) {
+                            if (post.imgPath) {
                                 post.imgPath = this.imageBaseUrl + post.imgPath;
-                            }
-                            if (post.avatarPath && !post.avatarPath.startsWith('http')) {
                                 post.avatarPath = this.imageBaseUrl + post.avatarPath;
                             }
                         });
+
                         this.distributePosts(newPosts);
                         this.posts.push(...newPosts);
                         this.page++;
-                    }
-
-                    if (pageInfo.isLastPage) {
-                        this.hasMore = false;
-                        if (this.posts.length > 0) {
-                            // 为了避免首次加载就提示，可以在此加个判断
-                            if (!this.isLoading) this.$message('没有更多内容了');
-                        }
+                    } else {
+                        if (this.page > 1) this.$message('没有更多内容了');
                     }
                 } catch (error) {
                     console.error('获取帖子数据失败:', error.response ? error.response.data : error.message);
                     this.$message.error('数据加载失败，请稍后重试');
-                    this.hasMore = false;
                 } finally {
                     this.isLoading = false;
                 }
@@ -513,7 +442,6 @@
                 this.posts = [];
                 this.columns = [[], [], [], [], [], []];
                 this.page = 1;
-                this.hasMore = true; // <<< 修正：这里应该是赋值语句
                 this.fetchData();
             },
 
@@ -532,7 +460,7 @@
             },
 
             handleScroll() {
-                if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 && !this.isLoading && this.hasMore) {
+                if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 && !this.isLoading) {
                     this.fetchData();
                 }
             },
@@ -543,11 +471,11 @@
         },
 
         async created() {
-            await this.fetchUserInfo();
+            this.fetchUserInfo();
             await this.fetchPlates();
             if (this.tabs.length > 0) {
                 this.activeTabKey = this.tabs[0].key;
-                // this.fetchData() 会在 watch 中自动触发，无需手动调用
+                this.fetchData();
             } else {
                 console.warn("未能加载任何Tab，无法获取帖子数据。");
             }
@@ -555,8 +483,6 @@
 
         mounted() {
             window.addEventListener('scroll', this.handleScroll);
-            // 将 this 赋值给 window.app，以便全局函数调用
-            window.app = this;
         },
 
         beforeDestroy() {

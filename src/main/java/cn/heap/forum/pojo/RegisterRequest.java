@@ -8,4 +8,5 @@ public class RegisterRequest {
     private String password;
     private String confirmPassword;
     private Integer roleId;
+    private String avatarPath;
 } 
